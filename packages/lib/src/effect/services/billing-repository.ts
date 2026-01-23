@@ -68,45 +68,52 @@ export interface UsageSummary {
 }
 
 /**
- * Default plan limits based on plan name (synced with pricing.md)
+ * Default plan limits based on plan name
+ *
+ * Pricing (yearly shown as default, 15% off monthly):
+ * - Scale:  $29/user/month yearly | $34/user/month monthly
+ * - Growth: $49/user/month yearly | $58/user/month monthly
+ * - Pro:    $79/user/month yearly | $93/user/month monthly
  *
  * Note: There is no free plan - all users start with a 14-day Scale trial.
- *
- * Scale Plan: $25/user/month
- * - 5 GB storage/user
- * - 25 videos/user/month
- * - 25 team members max
- * - 25 GB bandwidth/month
- * - 60 min AI transcription/user/month
- *
- * Pro Plan: $45/user/month
- * - 25 GB storage/user
- * - 100 videos/user/month
- * - Unlimited team members
- * - 250 GB bandwidth/month
- * - 300 min AI transcription/user/month
+ * Note: Single workspace per organization (no multi-workspace).
  */
 const DEFAULT_PLAN_LIMITS: Record<string, PlanLimits> = {
-  // Scale Plan - entry tier ($25/user/month) - also used for trials
+  // Scale Plan - starter tier ($29/user/month yearly) - also used for trials
   scale: {
     storage: 5 * 1024 * 1024 * 1024, // 5GB per user
-    videos: 25, // 25 per user per month
-    members: 25, // max team members
+    videos: 50, // 50 video uploads per month
+    members: 10, // max 10 team members
     bandwidth: 25 * 1024 * 1024 * 1024, // 25GB/month
+    knowledgeSources: 3, // 3 connected sources (Slack, Notion, GitHub)
+    contentItems: 5000, // 5,000 synced content items
+    transcriptionMinutes: 90, // 90 min AI transcription/month
+    aiRequests: 500, // 500 AI requests/month
+    maxFileSize: 500 * 1024 * 1024, // 500MB max file size
   },
-  // Pro Plan - professional tier ($45/user/month)
+  // Growth Plan - mid-market tier ($49/user/month yearly)
+  growth: {
+    storage: 15 * 1024 * 1024 * 1024, // 15GB per user
+    videos: 200, // 200 video uploads per month
+    members: 30, // max 30 team members
+    bandwidth: 100 * 1024 * 1024 * 1024, // 100GB/month
+    knowledgeSources: 6, // 6 connected sources
+    contentItems: 25000, // 25,000 synced content items
+    transcriptionMinutes: 300, // 300 min AI transcription/month
+    aiRequests: 2000, // 2,000 AI requests/month
+    maxFileSize: 2 * 1024 * 1024 * 1024, // 2GB max file size
+  },
+  // Pro Plan - enterprise tier ($79/user/month yearly)
   pro: {
-    storage: 25 * 1024 * 1024 * 1024, // 25GB per user
-    videos: 100, // 100 per user per month
-    members: -1, // unlimited
-    bandwidth: 250 * 1024 * 1024 * 1024, // 250GB/month
-  },
-  // Enterprise Plan - custom pricing
-  enterprise: {
-    storage: -1, // unlimited
-    videos: -1, // unlimited
-    members: -1, // unlimited
-    bandwidth: -1, // unlimited
+    storage: 50 * 1024 * 1024 * 1024, // 50GB per user
+    videos: -1, // unlimited video uploads
+    members: -1, // unlimited team members
+    bandwidth: 500 * 1024 * 1024 * 1024, // 500GB/month
+    knowledgeSources: -1, // unlimited sources
+    contentItems: -1, // unlimited content items
+    transcriptionMinutes: 1000, // 1,000 min AI transcription/month
+    aiRequests: 10000, // 10,000 AI requests/month
+    maxFileSize: 5 * 1024 * 1024 * 1024, // 5GB max file size
   },
 };
 

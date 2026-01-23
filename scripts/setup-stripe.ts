@@ -4,9 +4,10 @@
  * This script creates and configures all Stripe products, prices, and billing settings
  * for the Nuclom video collaboration platform.
  *
- * Pricing Configuration:
- * - Monthly: $25/user/month (refundable with prorated daily usage)
- * - Yearly: $19/user/month ($228/year, 24% savings, non-refundable)
+ * Pricing Configuration (Yearly shown as default, 15% off monthly):
+ * - Scale:  $29/user/month yearly ($348/year) | $34/user/month monthly
+ * - Growth: $49/user/month yearly ($588/year) | $58/user/month monthly
+ * - Pro:    $79/user/month yearly ($948/year) | $93/user/month monthly
  * - Trial: 14 days (no credit card required)
  *
  * Usage:
@@ -69,16 +70,18 @@ const PRODUCTS: ProductConfig[] = [
   {
     id: 'prod_nuclom_scale',
     name: 'Nuclom Scale',
-    description: 'Video collaboration platform with AI-powered features, transcription, and team collaboration tools.',
+    description: 'For small teams getting started with unified knowledge management. Up to 10 members, 3 knowledge sources.',
     metadata: {
       plan_type: 'scale',
       trial_days: '14',
       features: 'ai_insights,transcription,collaboration,integrations',
+      members_limit: '10',
+      sources_limit: '3',
     },
     prices: [
       {
         nickname: 'Scale Monthly',
-        unit_amount: 2500, // $25.00
+        unit_amount: 3400, // $34.00
         recurring: {
           interval: 'month',
           interval_count: 1,
@@ -86,12 +89,12 @@ const PRODUCTS: ProductConfig[] = [
         metadata: {
           billing_period: 'monthly',
           refund_policy: 'prorated_daily',
-          price_per_user: '25.00',
+          price_per_user: '34.00',
         },
       },
       {
         nickname: 'Scale Yearly',
-        unit_amount: 22800, // $228.00/year = $19/month
+        unit_amount: 34800, // $348.00/year = $29/month
         recurring: {
           interval: 'year',
           interval_count: 1,
@@ -99,8 +102,49 @@ const PRODUCTS: ProductConfig[] = [
         metadata: {
           billing_period: 'yearly',
           refund_policy: 'non_refundable',
-          price_per_user: '19.00',
-          yearly_savings: '24%',
+          price_per_user: '29.00',
+          yearly_savings: '15%',
+        },
+      },
+    ],
+  },
+  {
+    id: 'prod_nuclom_growth',
+    name: 'Nuclom Growth',
+    description: 'For growing teams that need more capacity and premium features. Up to 30 members, 6 knowledge sources, priority support.',
+    metadata: {
+      plan_type: 'growth',
+      trial_days: '14',
+      features: 'ai_insights,transcription,collaboration,integrations,custom_branding,priority_support',
+      members_limit: '30',
+      sources_limit: '6',
+    },
+    prices: [
+      {
+        nickname: 'Growth Monthly',
+        unit_amount: 5800, // $58.00
+        recurring: {
+          interval: 'month',
+          interval_count: 1,
+        },
+        metadata: {
+          billing_period: 'monthly',
+          refund_policy: 'prorated_daily',
+          price_per_user: '58.00',
+        },
+      },
+      {
+        nickname: 'Growth Yearly',
+        unit_amount: 58800, // $588.00/year = $49/month
+        recurring: {
+          interval: 'year',
+          interval_count: 1,
+        },
+        metadata: {
+          billing_period: 'yearly',
+          refund_policy: 'non_refundable',
+          price_per_user: '49.00',
+          yearly_savings: '15%',
         },
       },
     ],
@@ -108,16 +152,18 @@ const PRODUCTS: ProductConfig[] = [
   {
     id: 'prod_nuclom_pro',
     name: 'Nuclom Pro',
-    description: 'Pro video collaboration with higher limits, SSO integration, advanced AI, and dedicated support.',
+    description: 'For organizations requiring unlimited scale, SSO, audit logs, and dedicated support.',
     metadata: {
       plan_type: 'pro',
       trial_days: '14',
-      features: 'higher_limits,sso,advanced_ai,dedicated_support,custom_branding',
+      features: 'unlimited,sso,audit_logs,dedicated_support,custom_branding,advanced_permissions',
+      members_limit: 'unlimited',
+      sources_limit: 'unlimited',
     },
     prices: [
       {
         nickname: 'Pro Monthly',
-        unit_amount: 4500, // $45.00
+        unit_amount: 9300, // $93.00
         recurring: {
           interval: 'month',
           interval_count: 1,
@@ -125,12 +171,12 @@ const PRODUCTS: ProductConfig[] = [
         metadata: {
           billing_period: 'monthly',
           refund_policy: 'prorated_daily',
-          price_per_user: '45.00',
+          price_per_user: '93.00',
         },
       },
       {
         nickname: 'Pro Yearly',
-        unit_amount: 46800, // $468.00/year = $39/month
+        unit_amount: 94800, // $948.00/year = $79/month
         recurring: {
           interval: 'year',
           interval_count: 1,
@@ -138,8 +184,8 @@ const PRODUCTS: ProductConfig[] = [
         metadata: {
           billing_period: 'yearly',
           refund_policy: 'non_refundable',
-          price_per_user: '39.00',
-          yearly_savings: '13%',
+          price_per_user: '79.00',
+          yearly_savings: '15%',
         },
       },
     ],
@@ -339,7 +385,7 @@ async function setupBillingPortal(): Promise<void> {
 
 async function main() {
   console.log('\n🚀 Nuclom Stripe IaC Setup\n');
-  console.log('='.repeat(50));
+  console.log('='.repeat(60));
 
   if (DRY_RUN) {
     console.log('🔍 DRY RUN MODE - No changes will be made\n');
@@ -349,15 +395,26 @@ async function main() {
     console.log('⚠️  FORCE UPDATE MODE - Existing resources will be updated\n');
   }
 
-  console.log('📋 Pricing Configuration:');
+  console.log('📋 Pricing Configuration (Yearly shown as default):');
+  console.log('');
   console.log('   Scale Plan:');
-  console.log('   • Monthly: $25/user/month (prorated daily refund)');
-  console.log('   • Yearly:  $19/user/month ($228/year, 24% off, non-refundable)');
+  console.log('   • Yearly:  $29/user/month ($348/year) - 15% off');
+  console.log('   • Monthly: $34/user/month');
+  console.log('   • Limits: 10 members, 3 sources, 5GB/user storage');
+  console.log('');
+  console.log('   Growth Plan:');
+  console.log('   • Yearly:  $49/user/month ($588/year) - 15% off');
+  console.log('   • Monthly: $58/user/month');
+  console.log('   • Limits: 30 members, 6 sources, 15GB/user storage');
+  console.log('');
   console.log('   Pro Plan:');
-  console.log('   • Monthly: $45/user/month (prorated daily refund)');
-  console.log('   • Yearly:  $39/user/month ($468/year, 13% off, non-refundable)');
-  console.log('   Trial:   14 days (no credit card required)\n');
-  console.log(`${'='.repeat(50)}\n`);
+  console.log('   • Yearly:  $79/user/month ($948/year) - 15% off');
+  console.log('   • Monthly: $93/user/month');
+  console.log('   • Limits: Unlimited members, Unlimited sources, 50GB/user');
+  console.log('');
+  console.log('   Trial: 14 days (no credit card required)');
+  console.log('');
+  console.log(`${'='.repeat(60)}\n`);
 
   const createdResources: {
     products: Array<{ name: string; id: string }>;
@@ -391,7 +448,7 @@ async function main() {
   await setupBillingPortal();
 
   // Summary
-  console.log(`\n${'='.repeat(50)}`);
+  console.log(`\n${'='.repeat(60)}`);
   console.log('📊 Summary\n');
 
   if (!DRY_RUN) {
@@ -408,10 +465,12 @@ async function main() {
     // Find price IDs for environment variables
     const scaleMonthly = createdResources.prices.find((p) => p.nickname === 'Scale Monthly');
     const scaleYearly = createdResources.prices.find((p) => p.nickname === 'Scale Yearly');
+    const growthMonthly = createdResources.prices.find((p) => p.nickname === 'Growth Monthly');
+    const growthYearly = createdResources.prices.find((p) => p.nickname === 'Growth Yearly');
     const proMonthly = createdResources.prices.find((p) => p.nickname === 'Pro Monthly');
     const proYearly = createdResources.prices.find((p) => p.nickname === 'Pro Yearly');
 
-    console.log(`\n${'='.repeat(50)}`);
+    console.log(`\n${'='.repeat(60)}`);
     console.log('🔐 Required Environment Variables\n');
     console.log('Add these to your .env file:\n');
     console.log('# Stripe Configuration');
@@ -419,16 +478,16 @@ async function main() {
     console.log('STRIPE_PUBLISHABLE_KEY=pk_...');
     console.log('STRIPE_WEBHOOK_SECRET=whsec_...');
     console.log('');
-    console.log('# Better Auth Stripe Price IDs');
+    console.log('# Stripe Price IDs');
     console.log(`STRIPE_PRICE_ID_SCALE_MONTHLY=${scaleMonthly?.id || 'price_xxx'}`);
     console.log(`STRIPE_PRICE_ID_SCALE_YEARLY=${scaleYearly?.id || 'price_xxx'}`);
+    console.log(`STRIPE_PRICE_ID_GROWTH_MONTHLY=${growthMonthly?.id || 'price_xxx'}`);
+    console.log(`STRIPE_PRICE_ID_GROWTH_YEARLY=${growthYearly?.id || 'price_xxx'}`);
     console.log(`STRIPE_PRICE_ID_PRO_MONTHLY=${proMonthly?.id || 'price_xxx'}`);
     console.log(`STRIPE_PRICE_ID_PRO_YEARLY=${proYearly?.id || 'price_xxx'}`);
     console.log('');
-    console.log('# (VERCEL_URL, VERCEL_PROJECT_PRODUCTION_URL) - no manual configuration needed');
-    console.log('');
 
-    console.log('='.repeat(50));
+    console.log('='.repeat(60));
     console.log('🔗 Webhook Endpoint to Configure\n');
     console.log('Configure this single webhook in Stripe Dashboard:\n');
     console.log('   URL: https://your-app.com/api/webhooks/stripe');
@@ -439,13 +498,10 @@ async function main() {
     console.log('     - payment_method.attached');
     console.log('     - payment_method.detached');
     console.log('');
-    console.log('   Note: This unified endpoint handles all events and forwards');
-    console.log('   subscription events to Better Auth internally.');
-    console.log('');
 
     console.log('📝 Next Steps:');
     console.log('   1. Copy the environment variables above to your .env file');
-    console.log('   2. Run database migrations: pnpm drizzle-kit migrate');
+    console.log('   2. Run database migrations: pnpm db:migrate');
     console.log('   3. Configure webhook endpoints in Stripe Dashboard');
     console.log('   4. Test the checkout flow in Stripe test mode');
   } else {
