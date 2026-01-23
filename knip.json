@@ -1,0 +1,178 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": [],
+      "project": [],
+      "ignoreDependencies": [
+        "turbo",
+        "@typescript/native-preview",
+        "@vercel/microfrontends",
+        "knip",
+        "lefthook"
+      ]
+    },
+    "apps/saas": {
+      "entry": ["src/workflows/index.ts!"],
+      "project": ["src/**/*.{ts,tsx}"],
+      "ignore": [
+        "src/**/*.test.ts",
+        "src/**/*.test.tsx",
+        "src/**/*.integration.test.ts",
+        "src/test/**",
+        "src/components/ui/**",
+        "src/app/.well-known/workflow/**"
+      ],
+      "next": {
+        "config": ["next.config.ts"]
+      },
+      "drizzle": {
+        "config": ["drizzle.config.ts"]
+      },
+      "vitest": {
+        "config": ["vitest.config.ts"]
+      },
+      "postcss": {
+        "config": ["postcss.config.js"]
+      },
+      "ignoreDependencies": [
+        "@typescript/native-preview",
+        "@vercel/microfrontends",
+        "server-only",
+        "tailwindcss-animate",
+        "autoprefixer",
+        "@next/env",
+        "tsx",
+        "tailwindcss",
+        "tailwind-merge",
+        "clsx",
+        "postcss",
+        "@tailwindcss/postcss",
+        "@nuclom/config",
+        "@nuclom/ui",
+        "@posthog/nextjs-config",
+        "@vercel/config",
+        "dotenv",
+        "postgres",
+        "posthog-js",
+        "posthog-node",
+        "tslog",
+        "@better-auth/oauth-provider",
+        "@better-auth/passkey",
+        "@better-auth/sso",
+        "@better-auth/stripe",
+        "@effect/platform",
+        "@effect/platform-node",
+        "@effect/sql",
+        "@effect/sql-drizzle",
+        "@effect/sql-pg",
+        "openai",
+        "resend",
+        "bash-tool",
+        "@stripe/stripe-js"
+      ]
+    },
+    "apps/marketing": {
+      "project": ["src/**/*.{ts,tsx}"],
+      "next": {
+        "config": ["next.config.ts"]
+      },
+      "postcss": {
+        "config": ["postcss.config.js"]
+      },
+      "ignoreDependencies": [
+        "@typescript/native-preview",
+        "@vercel/microfrontends",
+        "postcss",
+        "@tailwindcss/postcss",
+        "@nuclom/config",
+        "tailwindcss",
+        "tailwind-merge",
+        "clsx",
+        "class-variance-authority"
+      ]
+    },
+    "packages/lib": {
+      "entry": ["src/**/*.ts!", "!src/**/*.test.ts", "!src/**/*.integration.test.ts"],
+      "project": ["src/**/*.ts"],
+      "ignore": ["src/**/*.test.ts", "src/**/*.integration.test.ts"],
+      "vitest": {
+        "config": []
+      },
+      "ignoreDependencies": [
+        "@typescript/native-preview",
+        "drizzle-kit",
+        "@effect/vitest",
+        "vitest",
+        "@nuclom/auth",
+        "@nuclom/config",
+        "@effect/sql",
+        "posthog-js",
+        "postgres",
+        "date-fns",
+        "tailwind-merge",
+        "clsx",
+        "server-only"
+      ]
+    },
+    "packages/ui": {
+      "entry": ["src/**/*.tsx!"],
+      "project": ["src/**/*.tsx"],
+      "ignoreDependencies": [
+        "@typescript/native-preview",
+        "@nuclom/config",
+        "tailwind-merge",
+        "clsx"
+      ]
+    },
+    "packages/auth": {
+      "entry": ["src/index.ts!", "src/client.ts!"],
+      "project": ["src/**/*.ts"],
+      "ignoreDependencies": [
+        "@typescript/native-preview",
+        "@nuclom/config",
+        "drizzle-orm",
+        "stripe"
+      ]
+    },
+    "packages/config": {
+      "entry": [],
+      "project": [],
+      "ignoreDependencies": ["typescript"]
+    },
+    "packages/socials": {
+      "entry": ["src/cli.ts!", "src/index.ts!", "src/providers/*/index.ts!"],
+      "project": ["src/**/*.ts"],
+      "ignoreDependencies": ["@effect/platform"]
+    },
+    "tests/e2e": {
+      "entry": ["**/*.ts!"],
+      "project": ["**/*.ts"],
+      "playwright": {
+        "config": ["playwright.config.ts"]
+      },
+      "ignoreDependencies": ["@playwright/test"]
+    }
+  },
+  "ignore": [
+    "**/*.d.ts",
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/dist/**"
+  ],
+  "ignoreExportsUsedInFile": true,
+  "rules": {
+    "files": "error",
+    "dependencies": "error",
+    "devDependencies": "error",
+    "unlisted": "warn",
+    "binaries": "warn",
+    "exports": "off",
+    "types": "off",
+    "nsExports": "off",
+    "nsTypes": "off",
+    "duplicates": "off",
+    "enumMembers": "off",
+    "classMembers": "off"
+  }
+}

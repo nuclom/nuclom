@@ -42,7 +42,12 @@
           "options": {
             "paths": {
               "next/link": "Use @vercel/microfrontends/next/client Link for cross-zone navigation.",
-              "framer-motion": "Use 'motion/react' instead. The 'motion' package is the modern replacement for framer-motion."
+              "framer-motion": "Use 'motion/react' instead. The 'motion' package is the modern replacement for framer-motion.",
+              "@radix-ui/react-dialog": "Use the unified 'radix-ui' package instead. Example: import { Dialog } from 'radix-ui'",
+              "@radix-ui/react-slot": "Use the unified 'radix-ui' package instead. Example: import { Slot } from 'radix-ui'",
+              "@radix-ui/react-switch": "Use the unified 'radix-ui' package instead. Example: import { Switch } from 'radix-ui'",
+              "@radix-ui/react-toast": "Use the unified 'radix-ui' package instead. Example: import { Toast } from 'radix-ui'",
+              "@radix-ui/react-label": "Use the unified 'radix-ui' package instead. Example: import { Label } from 'radix-ui'"
             }
           }
         }

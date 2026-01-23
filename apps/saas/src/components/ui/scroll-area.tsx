@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
-import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area';
+import { ScrollArea as ScrollAreaPrimitive } from 'radix-ui';
 import * as React from 'react';
 
 const ScrollArea = React.forwardRef<

@@ -12,6 +12,7 @@
     "lint": "biome check . --error-on-warnings",
     "lint:fix": "biome check . --write --error-on-warnings",
     "format": "biome format . --write",
+    "knip": "knip",
     "test": "turbo test --filter=!@nuclom/e2e",
     "test:e2e": "pnpm --filter @nuclom/e2e test",
     "test:e2e:saas": "pnpm --filter @nuclom/e2e test:saas",
@@ -27,6 +28,7 @@
     "@biomejs/biome": "catalog:",
     "@typescript/native-preview": "catalog:",
     "@vercel/microfrontends": "catalog:",
+    "knip": "catalog:",
     "lefthook": "catalog:",
     "turbo": "catalog:",
     "typescript": "catalog:"

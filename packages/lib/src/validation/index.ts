@@ -296,7 +296,3 @@ export * from './file-validation';
 export * from './sanitize';
 // Re-export schemas
 export * from './schemas';
-
-// Note: Form utilities (useValidatedForm, etc.) are in ./form.ts
-// Import them directly for client-side usage:
-// import { useValidatedForm } from "@/lib/validation/form";
