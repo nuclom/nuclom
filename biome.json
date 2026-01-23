@@ -56,7 +56,8 @@
         "useSemanticElements": "off"
       },
       "performance": {
-        "noAccumulatingSpread": "warn"
+        "noAccumulatingSpread": "warn",
+        "noBarrelFile": "error"
       },
       "nursery": {}
     }
