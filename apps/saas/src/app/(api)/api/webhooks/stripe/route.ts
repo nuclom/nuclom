@@ -304,12 +304,15 @@ export async function POST(request: Request) {
       const error = Cause.failureOption(cause);
       if (Option.isSome(error)) {
         const err = error.value;
-        if (err && typeof err === 'object' && '_tag' in err) {
-          // Cast to unknown first to allow checking any _tag value
-          const errorTag = (err as { _tag: string })._tag;
-          if (errorTag === 'WebhookSignatureError') {
-            return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
-          }
+        // Type-safe check for tagged errors
+        if (
+          err &&
+          typeof err === 'object' &&
+          '_tag' in err &&
+          typeof (err as Record<string, unknown>)._tag === 'string' &&
+          (err as Record<string, unknown>)._tag === 'WebhookSignatureError'
+        ) {
+          return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
         }
         logger.error('Webhook error', err instanceof Error ? err : new Error(String(err)), {
           component: 'stripe-webhook',
