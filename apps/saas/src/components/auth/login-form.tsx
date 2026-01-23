@@ -40,12 +40,14 @@ export function LoginForm({ redirectTo, signupsDisabled }: LoginFormProps) {
         const result = await getLastUsedLoginMethod();
         // Handle different return types from the API
         if (result) {
+          // The API can return either a string directly or an object with data property
           if (typeof result === 'string') {
             setLastLoginMethod(result);
-          } else if (typeof result === 'object') {
-            const data = (result as { data?: string }).data;
-            if (data) {
-              setLastLoginMethod(data);
+          } else {
+            // For object results, safely check for data property
+            const maybeData = result as { data?: unknown };
+            if (typeof maybeData.data === 'string') {
+              setLastLoginMethod(maybeData.data);
             }
           }
         }

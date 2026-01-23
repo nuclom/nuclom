@@ -8,6 +8,7 @@
  * as they become available during processing.
  */
 
+import { logger } from '@nuclom/lib/client-logger';
 import type { ProcessingStatus } from '@nuclom/lib/db/schema';
 import type { VideoWithDetails } from '@nuclom/lib/types';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -78,8 +79,8 @@ export function useVideoProcessing({
           thumbnailUrl: result.data.thumbnailUrl || prev.thumbnailUrl,
         }));
       }
-    } catch {
-      // Silently fail - will retry on next interval
+    } catch (error) {
+      logger.warn('Failed to fetch video processing status', { error, videoId: video.id });
     }
   }, [video.id]);
 

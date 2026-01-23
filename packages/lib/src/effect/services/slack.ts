@@ -46,7 +46,7 @@ export interface SlackServiceInterface {
   /**
    * Get the OAuth authorization URL
    */
-  readonly getAuthorizationUrl: (state: string) => Effect.Effect<string, never>;
+  readonly getAuthorizationUrl: (state: string) => Effect.Effect<string, HttpError>;
 
   /**
    * Exchange authorization code for access token
@@ -132,11 +132,11 @@ const makeSlackService = Effect.gen(function* () {
     };
   };
 
-  const getAuthorizationUrl = (state: string): Effect.Effect<string, never> =>
-    Effect.sync(() => {
+  const getAuthorizationUrl = (state: string): Effect.Effect<string, HttpError> =>
+    Effect.gen(function* () {
       const cfg = getConfig();
       if (!cfg) {
-        throw new Error('Slack is not configured');
+        return yield* Effect.fail(new HttpError({ message: 'Slack is not configured', status: 503 }));
       }
 
       const scopes = ['channels:read', 'chat:write', 'incoming-webhook', 'users:read', 'users:read.email'].join(',');
@@ -355,7 +355,7 @@ export const SlackLive = Layer.effect(Slack, makeSlackService);
 // Slack Helper Functions
 // =============================================================================
 
-export const getSlackAuthorizationUrl = (state: string): Effect.Effect<string, never, Slack> =>
+export const getSlackAuthorizationUrl = (state: string): Effect.Effect<string, HttpError, Slack> =>
   Effect.gen(function* () {
     const slack = yield* Slack;
     return yield* slack.getAuthorizationUrl(state);

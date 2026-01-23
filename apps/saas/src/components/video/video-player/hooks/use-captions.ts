@@ -25,9 +25,14 @@ export function useCaptions({ videoRef, videoId, customCaptionTracks }: UseCapti
         setCaptionsEnabled(true);
       }
     } else if (videoId) {
-      fetch(`/api/videos/${videoId}/subtitles`)
-        .then((res) => res.json())
-        .then((data) => {
+      const loadCaptions = async () => {
+        try {
+          const res = await fetch(`/api/videos/${videoId}/subtitles`);
+          if (!res.ok) {
+            logger.error('Failed to load caption tracks', { status: res.status });
+            return;
+          }
+          const data = await res.json();
           if (data.success && data.data?.languages) {
             const tracks: CaptionTrack[] = data.data.languages
               .filter((lang: { available: boolean }) => lang.available)
@@ -45,10 +50,11 @@ export function useCaptions({ videoRef, videoId, customCaptionTracks }: UseCapti
               setCaptionsEnabled(true);
             }
           }
-        })
-        .catch((err) => {
+        } catch (err) {
           logger.error('Failed to load caption tracks', err);
-        });
+        }
+      };
+      loadCaptions();
     }
   }, [videoId, customCaptionTracks]);
 

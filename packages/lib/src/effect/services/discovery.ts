@@ -13,7 +13,6 @@ import { and, desc, eq, gt, isNull, sql } from 'drizzle-orm';
 import { Context, Data, Effect, Layer } from 'effect';
 import { contentItems, decisions, topicClusters, users, videos } from '../../db/schema';
 import { Database } from './database';
-import { Embedding } from './embedding';
 
 // =============================================================================
 // Types
@@ -128,7 +127,6 @@ const SCORING_WEIGHTS = {
 
 const makeDiscoveryService = Effect.gen(function* () {
   const { db } = yield* Database;
-  const _embedding = yield* Embedding;
 
   /**
    * Get user's recent activity to understand preferences

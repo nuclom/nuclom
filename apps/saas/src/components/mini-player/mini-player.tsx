@@ -1,5 +1,6 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
 import { cn } from '@nuclom/lib/utils';
 import { Maximize2, Pause, Play, Volume2, VolumeX, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -42,7 +43,9 @@ export function MiniPlayer() {
     if (localPlaying) {
       video.pause();
     } else {
-      video.play().catch(() => {});
+      video.play().catch((err) => {
+        logger.warn('Mini player autoplay failed', err);
+      });
     }
   }, [localPlaying]);
 

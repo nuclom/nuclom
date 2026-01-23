@@ -205,14 +205,6 @@ export function useVideoProgress({
     });
   }, [videoId, enabled]);
 
-  // Save progress on unmount
-  useEffect(() => {
-    return () => {
-      // Try to save any pending progress when unmounting
-      // Note: This may not always complete due to page navigation
-    };
-  }, []);
-
   return {
     initialProgress,
     loading,
