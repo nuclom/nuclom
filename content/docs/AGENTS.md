@@ -8,9 +8,20 @@ This file contains instructions for AI/LLM systems when working with the Nuclom 
 
 1. **Read before writing** - Always read existing code and documentation first
 2. **Match existing patterns** - Follow conventions already in the codebase
-3. **Minimal changes** - Only modify what's necessary for the task
-4. **Verify with tools** - Run `pnpm tsc` and `pnpm lint` before finishing
-5. **Update documentation** - Keep docs in sync with code changes
+3. **Verify with tools** - Run `pnpm tsc` and `pnpm lint` before finishing
+4. **Update documentation** - Keep docs in sync with code changes
+
+## Code Quality Mandate
+
+**Fix all errors** - Always fix any errors encountered, whether they are part of your current task or preexisting issues. Do not leave broken code behind. If you encounter type errors, lint errors, or failing tests in files you're working with, fix them.
+
+**No backwards compatibility concerns** - Do not try to maintain backwards compatibility or avoid breaking changes. Refactor freely, rename boldly, and restructure as needed. The goal is clean, correct code—not preserving legacy interfaces.
+
+**Delete dead code** - Always perform a final cleanup pass. Remove unused imports, dead code paths, commented-out code, deprecated functions, and old implementations. If something is no longer used, delete it completely. Do not leave `// TODO: remove` comments or `_unused` variable prefixes.
+
+**Simplify and DRY** - Actively look for opportunities to simplify the codebase. Consolidate duplicate logic, extract common patterns, reduce complexity, and eliminate redundancy. Three similar code blocks should become one reusable function.
+
+**Use modern libraries** - Prefer state-of-the-art libraries over writing custom glue code. If a well-maintained library solves the problem, use it. Do not reinvent wheels or write boilerplate that a library handles better. Keep dependencies current and leverage the ecosystem.
 
 ## Quick Start Workflow
 
@@ -265,7 +276,10 @@ test("user flow", async ({ page }) => {
 5. **Not updating docs** - Keep documentation in sync
 6. **Bypassing auth** - All protected routes need auth checks
 7. **Direct DB mutations** - Use Drizzle ORM methods
-8. **Over-engineering** - Keep solutions simple and focused
+8. **Leaving preexisting errors** - Fix all errors you encounter, not just new ones
+9. **Preserving dead code** - Delete unused code, don't comment it out or rename with `_`
+10. **Writing glue code** - Use established libraries instead of custom implementations
+11. **Maintaining backwards compatibility** - Refactor freely, don't preserve legacy interfaces
 
 ## Verification Checklist
 

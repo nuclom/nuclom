@@ -338,6 +338,10 @@ const result = program.pipe(
 - Use repository services instead of direct database access in API routes
 - Use `Data.TaggedError` for all custom error types
 - Handle errors close to where they occur with `catchTag`
+- **Fix all errors encountered** - including preexisting issues in files you touch
+- **Delete dead code** - remove unused imports, commented-out code, and deprecated functions
+- **Simplify and DRY** - consolidate duplicate logic and extract common patterns
+- **Use modern libraries** - prefer established libraries over custom glue code
 
 ### Don't
 
@@ -350,6 +354,9 @@ const result = program.pipe(
 - Don't use `await Effect.runPromise()` inside `Effect.gen` blocks
 - Don't create effects without eventually executing them
 - Don't access `db` directly in API routes - use repository services
+- Don't preserve backwards compatibility - refactor freely and rename boldly
+- Don't leave dead code - delete it completely, don't comment it out
+- Don't write glue code when a library exists for the task
 
 ## Performance Guidelines
 
