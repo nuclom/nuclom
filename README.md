@@ -25,18 +25,12 @@ Visit [nuclom.com](https://nuclom.com) to create your account and start connecti
 
 For detailed usage guides, see our [documentation](https://nuclom.com/docs).
 
-## API
-
-Nuclom provides a REST API for programmatic access. Build custom integrations and workflows with your knowledge base. See the [API documentation](https://nuclom.com/docs/api) for details.
-
 ## Support
 
 - **Documentation**: [nuclom.com/docs](https://nuclom.com/docs)
-- **Support**: [nuclom.com/support](https://nuclom.com/support)
-- **Status**: [status.nuclom.com](https://status.nuclom.com)
 
 ## License
 
-Copyright 2025 Nuclom. All rights reserved.
+Copyright 2026 Nuclom. All rights reserved.
 
 Licensed under the [Elastic License 2.0](LICENSE).
