@@ -1,7 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { Either } from 'effect';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { VideoProgress } from '@/components/video/video-player';
+import type { VideoProgress } from '@/components/video/video-player/types';
 import { useProgressFraction, useVideoProgress } from './use-video-progress';
 
 // Mock the Effect client

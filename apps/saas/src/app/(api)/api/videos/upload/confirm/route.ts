@@ -19,7 +19,7 @@ import { Effect, Option, Schema } from 'effect';
 const log = createLogger('video-upload');
 
 import { connection, type NextRequest, NextResponse } from 'next/server';
-import { processVideoWorkflow } from '@/workflows/video-processing';
+import { processVideoWorkflow } from '@/workflows/video-processing/workflow';
 
 // =============================================================================
 // Types

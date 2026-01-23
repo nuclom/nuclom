@@ -12,7 +12,7 @@ import type { ApiResponse } from '@nuclom/lib/types';
 import { sanitizeDescription, sanitizeTitle, validate } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import { connection, type NextRequest, NextResponse } from 'next/server';
-import { processVideoWorkflow } from '@/workflows/video-processing';
+import { processVideoWorkflow } from '@/workflows/video-processing/workflow';
 
 // =============================================================================
 // Types

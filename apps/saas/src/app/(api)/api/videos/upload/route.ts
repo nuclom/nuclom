@@ -14,7 +14,7 @@ import {
 } from '@nuclom/lib/validation';
 import { Cause, Effect, Option } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
-import { processVideoWorkflow } from '@/workflows/video-processing';
+import { processVideoWorkflow } from '@/workflows/video-processing/workflow';
 
 // =============================================================================
 // Types
