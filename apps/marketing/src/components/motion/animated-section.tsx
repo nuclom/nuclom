@@ -1,7 +1,7 @@
 'use client';
 
-import { motion, useScroll, useTransform, useInView } from 'motion/react';
-import { useRef, type ReactNode } from 'react';
+import { motion, useInView, useScroll, useTransform } from 'motion/react';
+import { type ReactNode, useRef } from 'react';
 
 interface AnimatedSectionProps {
   children: ReactNode;
@@ -294,14 +294,10 @@ export function CountUp({
   );
 }
 
-function Counter({ from, to, duration }: { from: number; to: number; duration: number }) {
-  const ref = useRef<HTMLSpanElement>(null);
-
+function Counter({ to }: { from: number; to: number; duration: number }) {
   return (
-    <motion.span ref={ref} initial={{ opacity: 1 }} animate={{ opacity: 1 }}>
-      <motion.span initial={{ opacity: 1 }} animate={{ opacity: 1 }} onUpdate={() => {}}>
-        {to}
-      </motion.span>
+    <motion.span initial={{ opacity: 1 }} animate={{ opacity: 1 }}>
+      {to}
     </motion.span>
   );
 }

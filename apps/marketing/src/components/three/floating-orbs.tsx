@@ -1,8 +1,8 @@
 'use client';
 
-import { useRef, useMemo } from 'react';
+import { Float, RoundedBox, Text } from '@react-three/drei';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Float, Text, RoundedBox } from '@react-three/drei';
+import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 
 const integrations = [
@@ -31,7 +31,7 @@ function IntegrationOrb({
   const glowRef = useRef<THREE.Mesh>(null);
   const time = useRef(index * 1.5);
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     if (!groupRef.current || !glowRef.current) return;
 
     time.current += delta;
@@ -96,7 +96,7 @@ function CenterHub() {
   const meshRef = useRef<THREE.Mesh>(null);
   const ringsRef = useRef<THREE.Group>(null);
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     if (!meshRef.current || !ringsRef.current) return;
 
     meshRef.current.rotation.y += delta * 0.2;

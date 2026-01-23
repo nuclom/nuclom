@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
+import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 
 const GRID_SIZE = 30;
@@ -52,11 +52,11 @@ function DotGrid() {
 
     positions.forEach((pos, i) => {
       matrix.setPosition(pos[0], pos[1], pos[2]);
-      meshRef.current!.setMatrixAt(i, matrix);
+      meshRef.current?.setMatrixAt(i, matrix);
 
       // Base color - subtle violet
       color.setHSL(0.73, 0.5, 0.35);
-      meshRef.current!.setColorAt(i, color);
+      meshRef.current?.setColorAt(i, color);
     });
 
     meshRef.current.instanceMatrix.needsUpdate = true;
@@ -65,7 +65,7 @@ function DotGrid() {
     }
   }, [positions]);
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     if (!meshRef.current) return;
 
     timeRef.current += delta * 0.4; // Slow, calm wave speed
@@ -91,7 +91,7 @@ function DotGrid() {
       // Secondary "connection pulse" waves emanating from hubs
       // Creates subtle suggestion of information flowing between teams
       let hubPulse = 0;
-      TEAM_HUBS.forEach((hub, hubIndex) => {
+      TEAM_HUBS.forEach((_hub, hubIndex) => {
         const dist = hubDist[hubIndex];
         if (dist < 3) {
           // Staggered pulse timing for each hub - suggests async communication
@@ -114,7 +114,7 @@ function DotGrid() {
       matrix.setPosition(baseX, baseY, waveOffset);
       scale.setScalar(scaleFactor);
       matrix.scale(scale);
-      meshRef.current!.setMatrixAt(i, matrix);
+      meshRef.current?.setMatrixAt(i, matrix);
 
       // Color - brighter near hubs, with hub-specific tint
       let brightness = 0.3 + Math.sin(distFromCenter * 0.6 - time * 1.0) * 0.1;
@@ -136,7 +136,7 @@ function DotGrid() {
       hue += (distFromCenter / 8) * 0.08;
 
       color.setHSL(hue, saturation, brightness);
-      meshRef.current!.setColorAt(i, color);
+      meshRef.current?.setColorAt(i, color);
     });
 
     meshRef.current.instanceMatrix.needsUpdate = true;
@@ -177,7 +177,7 @@ function HubConnections() {
     return conns;
   }, []);
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     if (!linesRef.current) return;
     timeRef.current += delta;
 

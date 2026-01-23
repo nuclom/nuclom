@@ -1,19 +1,19 @@
 'use client';
 
 import { Link } from '@vercel/microfrontends/next/client';
-import { ArrowRight, Check, MessageSquare, FileText, Github, Video, Sparkles } from 'lucide-react';
-import { Suspense, lazy } from 'react';
+import { ArrowRight, Check, FileText, Github, MessageSquare, Sparkles, Video } from 'lucide-react';
+import { lazy, Suspense } from 'react';
 import { MarketingFooter } from '@/components/marketing-footer';
 import { MarketingHeader } from '@/components/marketing-header';
-import { Button } from '@/components/ui/button';
 import {
   FadeInSection,
+  GlowCard,
   SlideInLeft,
   SlideInRight,
   StaggerChildren,
   StaggerItem,
-  GlowCard,
 } from '@/components/motion/animated-section';
+import { Button } from '@/components/ui/button';
 
 // Lazy load 3D components for performance
 const KnowledgeNetwork = lazy(() =>
