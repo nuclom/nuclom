@@ -70,33 +70,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     let presignedThumbnailUrl: string | null = null;
 
     if (shareLink.video.videoUrl) {
-      const videoUrl = shareLink.video.videoUrl;
-      let videoKey: string;
-      if (videoUrl.includes('.r2.cloudflarestorage.com/')) {
-        const extractedKey = storage.extractKeyFromUrl(videoUrl);
-        if (extractedKey) {
-          videoKey = extractedKey;
-          presignedVideoUrl = yield* storage.generatePresignedDownloadUrl(videoKey, 3600);
-        }
-      } else {
-        videoKey = videoUrl;
-        presignedVideoUrl = yield* storage.generatePresignedDownloadUrl(videoKey, 3600);
-      }
+      presignedVideoUrl = yield* storage.generatePresignedDownloadUrl(shareLink.video.videoUrl, 3600);
     }
 
     if (shareLink.video.thumbnailUrl) {
-      const thumbnailUrl = shareLink.video.thumbnailUrl;
-      let thumbnailKey: string;
-      if (thumbnailUrl.includes('.r2.cloudflarestorage.com/')) {
-        const extractedKey = storage.extractKeyFromUrl(thumbnailUrl);
-        if (extractedKey) {
-          thumbnailKey = extractedKey;
-          presignedThumbnailUrl = yield* storage.generatePresignedDownloadUrl(thumbnailKey, 3600);
-        }
-      } else {
-        thumbnailKey = thumbnailUrl;
-        presignedThumbnailUrl = yield* storage.generatePresignedDownloadUrl(thumbnailKey, 3600);
-      }
+      presignedThumbnailUrl = yield* storage.generatePresignedDownloadUrl(shareLink.video.thumbnailUrl, 3600);
     }
 
     // Return data with password as boolean (don't expose hash) and presigned URLs

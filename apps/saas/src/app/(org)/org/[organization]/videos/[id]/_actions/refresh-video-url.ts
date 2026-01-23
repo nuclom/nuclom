@@ -26,20 +26,7 @@ export async function refreshVideoUrl(videoId: string): Promise<{ videoUrl: stri
 
   const effect = Effect.gen(function* () {
     const storage = yield* Storage;
-
-    // Extract file key (supports both legacy URL and new key format)
-    let videoKey: string;
-    if (storedUrl.includes('.r2.cloudflarestorage.com/')) {
-      const extractedKey = storage.extractKeyFromUrl(storedUrl);
-      if (!extractedKey) {
-        return { videoUrl: null };
-      }
-      videoKey = extractedKey;
-    } else {
-      videoKey = storedUrl;
-    }
-
-    const presignedVideoUrl = yield* storage.generatePresignedDownloadUrl(videoKey, 3600);
+    const presignedVideoUrl = yield* storage.generatePresignedDownloadUrl(storedUrl, 3600);
     return { videoUrl: presignedVideoUrl };
   });
 
