@@ -6,6 +6,8 @@
     "strict": true,
     "noEmit": true,
     "incremental": true,
+    "disableSourceOfProjectReferenceRedirect": true,
+    "disableSolutionSearching": true,
     "esModuleInterop": true,
     "module": "preserve",
     "moduleResolution": "bundler",

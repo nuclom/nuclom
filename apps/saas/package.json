@@ -6,7 +6,8 @@
   "scripts": {
     "build": "NODE_OPTIONS=--max-old-space-size=6144 next build",
     "dev": "next dev --port $(microfrontends port)",
-    "tsc": "next typegen && tsgo --noEmit",
+    "tsc": "tsgo --noEmit",
+    "typegen": "next typegen",
     "start": "next start -p 3091",
     "db": "drizzle-kit",
     "db:generate": "drizzle-kit generate",

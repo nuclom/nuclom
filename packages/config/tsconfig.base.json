@@ -14,7 +14,9 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "disableSourceOfProjectReferenceRedirect": true,
+    "disableSolutionSearching": true
   },
   "exclude": ["node_modules"]
 }

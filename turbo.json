@@ -50,9 +50,13 @@
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
       "inputs": ["$TURBO_DEFAULT$", ".env", ".env.*"]
     },
+    "typegen": {
+      "outputs": [".next/types/**"],
+      "inputs": ["src/app/**/*.ts", "src/app/**/*.tsx", "src/workflows/**/*.ts"]
+    },
     "tsc": {
       "dependsOn": ["transit"],
-      "outputs": ["tsconfig.tsbuildinfo", ".next/types/**"]
+      "outputs": ["tsconfig.tsbuildinfo"]
     },
     "//#lint": {},
     "test": {

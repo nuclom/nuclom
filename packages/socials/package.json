@@ -13,7 +13,7 @@
   },
   "scripts": {
     "cli": "bun run src/cli.ts",
-    "tsc": "bun x tsc --noEmit",
+    "tsc": "tsgo --noEmit",
     "test": "bun test"
   },
   "dependencies": {
