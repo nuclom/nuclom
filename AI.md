@@ -1,6 +1,34 @@
 # Nuclom - Video Collaboration Platform
 
+**IMPORTANT**: These instructions are mandatory. Follow them exactly.
+
 All documentation is in `content/docs/` and served via Mintlify. Always keep documentation up to date after making changes to the code.
+
+## Code Quality Mandate (Non-Negotiable)
+
+These rules apply to EVERY task. Do not skip them.
+
+### 1. Fix All Errors
+- Fix ANY errors you encounter—whether they're part of your task or preexisting
+- Do not say "this error was preexisting" as an excuse—fix it anyway
+
+### 2. No Backwards Compatibility
+- Do NOT try to maintain backwards compatibility
+- Refactor freely, rename boldly, restructure as needed
+- Delete deprecated code paths entirely
+
+### 3. Delete Dead Code
+- ALWAYS perform a final cleanup pass
+- Remove: unused imports, dead code paths, commented-out code
+- Never leave `// TODO: remove` comments or `_unused` variable prefixes
+
+### 4. Simplify and DRY
+- Consolidate duplicate logic into reusable functions
+- Less code is better than more code
+
+### 5. Use Modern Libraries
+- Prefer well-maintained libraries over custom code
+- Do NOT write glue code that a library handles better
 
 ## Commands
 
@@ -338,6 +366,10 @@ const result = program.pipe(
 - Use repository services instead of direct database access in API routes
 - Use `Data.TaggedError` for all custom error types
 - Handle errors close to where they occur with `catchTag`
+- **Fix all errors encountered** - including preexisting issues in files you touch
+- **Delete dead code** - remove unused imports, commented-out code, and deprecated functions
+- **Simplify and DRY** - consolidate duplicate logic and extract common patterns
+- **Use modern libraries** - prefer established libraries over custom glue code
 
 ### Don't
 
@@ -350,6 +382,9 @@ const result = program.pipe(
 - Don't use `await Effect.runPromise()` inside `Effect.gen` blocks
 - Don't create effects without eventually executing them
 - Don't access `db` directly in API routes - use repository services
+- Don't preserve backwards compatibility - refactor freely and rename boldly
+- Don't leave dead code - delete it completely, don't comment it out
+- Don't write glue code when a library exists for the task
 
 ## Performance Guidelines
 
