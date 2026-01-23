@@ -346,9 +346,7 @@ export default function PricingPage() {
                       <span className="text-base font-normal text-muted-foreground">/user/mo</span>
                     </div>
                     {isYearly && (
-                      <div className="text-sm text-muted-foreground">
-                        ${plan.yearlyTotal}/user billed annually
-                      </div>
+                      <div className="text-sm text-muted-foreground">${plan.yearlyTotal}/user billed annually</div>
                     )}
                     {!isYearly && <p className="text-sm text-muted-foreground">Billed monthly</p>}
                   </div>

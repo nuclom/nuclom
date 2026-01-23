@@ -70,7 +70,8 @@ const PRODUCTS: ProductConfig[] = [
   {
     id: 'prod_nuclom_scale',
     name: 'Nuclom Scale',
-    description: 'For small teams getting started with unified knowledge management. Up to 10 members, 3 knowledge sources.',
+    description:
+      'For small teams getting started with unified knowledge management. Up to 10 members, 3 knowledge sources.',
     metadata: {
       plan_type: 'scale',
       trial_days: '14',
@@ -111,7 +112,8 @@ const PRODUCTS: ProductConfig[] = [
   {
     id: 'prod_nuclom_growth',
     name: 'Nuclom Growth',
-    description: 'For growing teams that need more capacity and premium features. Up to 30 members, 6 knowledge sources, priority support.',
+    description:
+      'For growing teams that need more capacity and premium features. Up to 30 members, 6 knowledge sources, priority support.',
     metadata: {
       plan_type: 'growth',
       trial_days: '14',
