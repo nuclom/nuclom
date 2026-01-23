@@ -1,6 +1,34 @@
 # Nuclom - Video Collaboration Platform
 
+**IMPORTANT**: These instructions are mandatory. Follow them exactly.
+
 All documentation is in `content/docs/` and served via Mintlify. Always keep documentation up to date after making changes to the code.
+
+## Code Quality Mandate (Non-Negotiable)
+
+These rules apply to EVERY task. Do not skip them.
+
+### 1. Fix All Errors
+- Fix ANY errors you encounter—whether they're part of your task or preexisting
+- Do not say "this error was preexisting" as an excuse—fix it anyway
+
+### 2. No Backwards Compatibility
+- Do NOT try to maintain backwards compatibility
+- Refactor freely, rename boldly, restructure as needed
+- Delete deprecated code paths entirely
+
+### 3. Delete Dead Code
+- ALWAYS perform a final cleanup pass
+- Remove: unused imports, dead code paths, commented-out code
+- Never leave `// TODO: remove` comments or `_unused` variable prefixes
+
+### 4. Simplify and DRY
+- Consolidate duplicate logic into reusable functions
+- Less code is better than more code
+
+### 5. Use Modern Libraries
+- Prefer well-maintained libraries over custom code
+- Do NOT write glue code that a library handles better
 
 ## Commands
 
