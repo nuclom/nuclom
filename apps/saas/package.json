@@ -122,6 +122,7 @@
     "workflow": "catalog:"
   },
   "devDependencies": {
+    "babel-plugin-react-compiler": "catalog:",
     "@biomejs/biome": "catalog:",
     "@effect/vitest": "catalog:",
     "@next/env": "catalog:",

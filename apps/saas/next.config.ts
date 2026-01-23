@@ -7,6 +7,9 @@ import { withWorkflow } from 'workflow/next';
 const withNextIntl = createNextIntlPlugin('./src/lib/i18n/request.ts');
 
 const nextConfig: NextConfig = {
+  // Enable React Compiler for automatic memoization
+  reactCompiler: true,
+
   // Enable Partial Prerendering (PPR) via cache components
   cacheComponents: true,
 

@@ -33,6 +33,7 @@
     "three": "catalog:"
   },
   "devDependencies": {
+    "babel-plugin-react-compiler": "catalog:",
     "@biomejs/biome": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
