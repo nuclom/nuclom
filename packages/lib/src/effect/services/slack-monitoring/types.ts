@@ -19,6 +19,8 @@ export type MonitoringEventType =
   | 'member_joined'
   | 'invitation_accepted'
   | 'beta_access_requested'
+  | 'contact_inquiry'
+  | 'support_request'
   // Billing events
   | 'subscription_created'
   | 'subscription_upgraded'
@@ -89,7 +91,9 @@ export interface SlackMonitoringServiceInterface {
       | 'member_invited'
       | 'member_joined'
       | 'invitation_accepted'
-      | 'beta_access_requested',
+      | 'beta_access_requested'
+      | 'contact_inquiry'
+      | 'support_request',
     data: {
       userId?: string;
       userName?: string;
@@ -101,6 +105,13 @@ export interface SlackMonitoringServiceInterface {
       role?: string;
       useCase?: string;
       company?: string;
+      subject?: string;
+      message?: string;
+      phone?: string;
+      jobTitle?: string;
+      teamSize?: string;
+      industry?: string;
+      timeline?: string;
     },
   ) => Effect.Effect<void, Error>;
 

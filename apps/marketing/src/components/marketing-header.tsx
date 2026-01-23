@@ -84,9 +84,6 @@ export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
               Docs
             </Link>
           )}
-          <Link href="/#about" className="text-sm font-medium hover:text-primary transition-colors">
-            About
-          </Link>
         </nav>
 
         {/* Desktop Actions */}
@@ -176,13 +173,6 @@ export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
                 Docs
               </Link>
             )}
-            <Link
-              href="/#about"
-              className="text-sm font-medium py-2 hover:text-primary transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              About
-            </Link>
           </nav>
           <div className="border-t px-4 py-4">
             {user ? (
