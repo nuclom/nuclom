@@ -7,9 +7,6 @@ import { withWorkflow } from 'workflow/next';
 const withNextIntl = createNextIntlPlugin('./src/lib/i18n/request.ts');
 
 const nextConfig: NextConfig = {
-  // Enable Partial Prerendering (PPR) via cache components
-  cacheComponents: true,
-
   // Skip during build - CI handles type checking
   typescript: { ignoreBuildErrors: true },
 
