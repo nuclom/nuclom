@@ -63,6 +63,8 @@ catalog:
   '@radix-ui/react-toggle': 1.1.10
   '@radix-ui/react-toggle-group': 1.1.11
   '@radix-ui/react-tooltip': 1.2.8
+  '@react-three/drei': ^10.7.7
+  '@react-three/fiber': ^9.5.0
   '@slack/web-api': 7.13.0
   '@slack/webhook': 7.0.6
   '@stripe/stripe-js': 8.6.3
@@ -74,15 +76,16 @@ catalog:
   '@types/node': 25.0.10
   '@types/react': 19.2.9
   '@types/react-dom': 19.2.3
+  '@types/three': ^0.182.0
   '@typescript/native-preview': 7.0.0-dev.20260122.3
   '@upstash/ratelimit': 2.0.8
   '@upstash/redis': 1.36.1
   '@vercel/analytics': 1.6.1
   '@vercel/config': 0.0.26
   '@vercel/microfrontends': 2.2.2
-  '@zoom/rivet': 0.4.0
   '@vitejs/plugin-react': 5.1.2
   '@vitest/coverage-v8': 4.0.17
+  '@zoom/rivet': 0.4.0
   ai: 6.0.45
   assemblyai: 4.22.1
   autoprefixer: 10.4.23
@@ -99,6 +102,7 @@ catalog:
   drizzle-orm: 0.45.1
   effect: 3.19.14
   embla-carousel-react: 8.6.0
+  framer-motion: ^12.29.0
   googleapis: 170.1.0
   input-otp: 1.4.2
   jsdom: 27.4.0
@@ -133,6 +137,7 @@ catalog:
   tailwind-merge: 3.4.0
   tailwindcss: 4.1.18
   tailwindcss-animate: 1.0.7
+  three: ^0.182.0
   tslog: 4.10.2
   tsx: 4.21.0
   turbo: 2.7.5
