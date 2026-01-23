@@ -117,7 +117,8 @@
           {
             "group": "Business",
             "pages": [
-              "docs/internal/pricing"
+              "docs/internal/pricing",
+              "docs/internal/competitive-analysis"
             ]
           }
         ]

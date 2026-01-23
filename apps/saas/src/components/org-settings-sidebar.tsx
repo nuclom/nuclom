@@ -48,19 +48,19 @@ export function OrgSettingsSidebar({ organization }: { organization: string }) {
       ],
     },
     {
-      title: 'Enterprise',
+      title: 'Security',
       items: [
         {
           href: `/org/${organization}/settings/sso`,
           label: 'Single Sign-On',
           icon: Lock,
-          badge: 'Enterprise',
+          badge: 'Pro',
         },
         {
           href: `/org/${organization}/settings/audit-logs`,
           label: 'Audit Logs',
           icon: ClipboardList,
-          badge: 'Enterprise',
+          badge: 'Pro',
         },
       ],
     },

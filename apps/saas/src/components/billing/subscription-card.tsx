@@ -55,12 +55,13 @@ const getStatusBadge = (status: string, cancelAtPeriodEnd: boolean) => {
   return <Badge variant={config.variant}>{config.label}</Badge>;
 };
 
-// Plan display names and prices (synced with pricing.md)
+// Plan display names and prices (synced with pricing documentation)
 // Note: No free plan - all new users start with a 14-day Scale trial
-const PLAN_DISPLAY_INFO: Record<string, { displayName: string; monthlyPrice: number }> = {
-  scale: { displayName: 'Scale', monthlyPrice: 2500 }, // $25.00/user/month
-  pro: { displayName: 'Pro', monthlyPrice: 4500 }, // $45.00/user/month
-  enterprise: { displayName: 'Enterprise', monthlyPrice: 0 }, // Custom pricing
+// Prices shown are yearly billing (default). Monthly is 15% higher.
+const PLAN_DISPLAY_INFO: Record<string, { displayName: string; yearlyPrice: number; monthlyPrice: number }> = {
+  scale: { displayName: 'Scale', yearlyPrice: 2900, monthlyPrice: 3400 }, // $29 yearly / $34 monthly
+  growth: { displayName: 'Growth', yearlyPrice: 4900, monthlyPrice: 5800 }, // $49 yearly / $58 monthly
+  pro: { displayName: 'Pro', yearlyPrice: 7900, monthlyPrice: 9300 }, // $79 yearly / $93 monthly
 };
 
 export function SubscriptionCard({

@@ -42,13 +42,18 @@ const formatPrice = (cents: number): string => {
 const featureLabels: Record<keyof PlanFeatures, string> = {
   aiInsights: 'AI Video Insights',
   customBranding: 'Custom Branding',
-  sso: 'SSO Authentication',
+  sso: 'SSO / SAML',
   prioritySupport: 'Priority Support',
   apiAccess: 'API Access',
+  auditLogs: 'Audit Logs',
+  advancedAnalytics: 'Advanced Analytics',
+  dedicatedSupport: 'Dedicated Account Manager',
+  passwordProtectedLinks: 'Password-Protected Links',
+  expiringLinks: 'Expiring Share Links',
 };
 
 export function PlanSelector({ plans, currentPlanId, onSelectPlan, isLoading }: PlanSelectorProps) {
-  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('yearly');
   const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
 
   const handleSelectPlan = async (planId: string) => {
@@ -82,7 +87,7 @@ export function PlanSelector({ plans, currentPlanId, onSelectPlan, isLoading }: 
         <Label htmlFor="billing-toggle" className={cn(billingPeriod === 'yearly' && 'text-foreground font-medium')}>
           Yearly
           <Badge variant="secondary" className="ml-2">
-            Save 24%
+            Save 15%
           </Badge>
         </Label>
       </div>
@@ -100,11 +105,11 @@ export function PlanSelector({ plans, currentPlanId, onSelectPlan, isLoading }: 
               className={cn(
                 'relative flex flex-col',
                 isCurrentPlan && 'border-primary ring-2 ring-primary ring-offset-2',
-                (plan.id === 'pro' || plan.name.toLowerCase() === 'pro') && 'border-primary/50',
+                (plan.id === 'growth' || plan.name.toLowerCase() === 'growth') && 'border-primary/50',
               )}
             >
               {isCurrentPlan && <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">Current Plan</Badge>}
-              {(plan.id === 'pro' || plan.name.toLowerCase() === 'pro') && !isCurrentPlan && (
+              {(plan.id === 'growth' || plan.name.toLowerCase() === 'growth') && !isCurrentPlan && (
                 <Badge variant="secondary" className="absolute -top-3 left-1/2 -translate-x-1/2">
                   Most Popular
                 </Badge>
@@ -170,7 +175,7 @@ export function PlanSelector({ plans, currentPlanId, onSelectPlan, isLoading }: 
                   variant={
                     isCurrentPlan
                       ? 'outline'
-                      : plan.id === 'pro' || plan.name.toLowerCase() === 'pro'
+                      : plan.id === 'growth' || plan.name.toLowerCase() === 'growth'
                         ? 'default'
                         : 'secondary'
                   }
