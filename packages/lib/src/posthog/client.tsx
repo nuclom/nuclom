@@ -4,7 +4,7 @@ import { useSession } from '@nuclom/auth/client';
 import { usePathname, useSearchParams } from 'next/navigation';
 import posthog from 'posthog-js';
 import { PostHogProvider as PHProvider, usePostHog } from 'posthog-js/react';
-import { Suspense, useEffect, useRef } from 'react';
+import { type ReactNode, Suspense, useEffect, useRef } from 'react';
 import { logger } from '../client-logger';
 import { env } from '../env/client';
 
@@ -118,7 +118,7 @@ function PostHogIdentifier() {
  * PostHog Provider wrapper for the application
  * Initializes PostHog and provides context to all child components
  */
-export function PostHogProvider({ children }: { children: React.ReactNode }) {
+export function PostHogProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     initPostHog();
   }, []);
