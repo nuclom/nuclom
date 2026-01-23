@@ -549,29 +549,125 @@ export function VideoUpload({
 
           {/* Progress Indicator */}
           {(uploadState.status === 'uploading' || uploadState.status === 'processing') && (
-            <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
-              <div className="flex items-center gap-3">
-                <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                <div className="flex-1">
-                  <p className="font-medium text-sm">
-                    {uploadState.status === 'uploading' ? 'Uploading your video' : 'Processing video'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {uploadState.status === 'uploading'
-                      ? 'Transferring file to secure storage...'
-                      : 'Generating thumbnail and extracting metadata...'}
-                  </p>
+            <div className="rounded-lg border bg-gradient-to-r from-primary/5 to-transparent p-4 space-y-4">
+              {/* Progress stages visualization */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                  {uploadState.progress < 10 ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  )}
+                  <span className={cn('text-xs', uploadState.progress >= 10 ? 'text-green-600 dark:text-green-400' : 'text-primary')}>
+                    Preparing
+                  </span>
+                </div>
+                <div className="flex-1 h-px bg-muted-foreground/20" />
+                <div className="flex items-center gap-1.5">
+                  {uploadState.progress >= 10 && uploadState.progress < 85 ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  ) : uploadState.progress >= 85 ? (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30" />
+                  )}
+                  <span className={cn('text-xs', uploadState.progress >= 85 ? 'text-green-600 dark:text-green-400' : uploadState.progress >= 10 ? 'text-primary' : 'text-muted-foreground')}>
+                    Uploading
+                  </span>
+                </div>
+                <div className="flex-1 h-px bg-muted-foreground/20" />
+                <div className="flex items-center gap-1.5">
+                  {uploadState.status === 'processing' ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  ) : uploadState.progress === 100 ? (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30" />
+                  )}
+                  <span className={cn('text-xs', uploadState.progress === 100 ? 'text-green-600 dark:text-green-400' : uploadState.status === 'processing' ? 'text-primary' : 'text-muted-foreground')}>
+                    Processing
+                  </span>
                 </div>
               </div>
-              <Progress value={uploadState.progress} className="w-full h-2" />
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-muted-foreground">{uploadState.progress}% complete</p>
-                {uploadState.status === 'uploading' && (
-                  <Button type="button" variant="ghost" size="sm" onClick={handleCancelUpload} className="h-7 text-xs">
-                    <X className="h-3 w-3 mr-1" />
-                    Cancel
-                  </Button>
-                )}
+
+              {/* Main progress info */}
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Upload className="h-5 w-5 text-primary" />
+                  </div>
+                  {/* Circular progress indicator */}
+                  <svg className="absolute inset-0 h-12 w-12 -rotate-90" viewBox="0 0 48 48">
+                    <circle
+                      cx="24"
+                      cy="24"
+                      r="20"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      className="text-muted-foreground/20"
+                    />
+                    <circle
+                      cx="24"
+                      cy="24"
+                      r="20"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeDasharray={125.6}
+                      strokeDashoffset={125.6 - (125.6 * uploadState.progress) / 100}
+                      className="text-primary transition-all duration-300"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-sm">
+                    {uploadState.progress < 10
+                      ? 'Preparing upload...'
+                      : uploadState.progress < 85
+                        ? 'Uploading to secure storage'
+                        : uploadState.status === 'processing'
+                          ? 'Processing your video'
+                          : 'Finalizing...'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {uploadState.progress < 10
+                      ? 'Getting everything ready...'
+                      : uploadState.progress < 85
+                        ? `${uploadState.progress}% uploaded - ${file ? `${((file.size * uploadState.progress) / 100 / 1024 / 1024).toFixed(1)}MB of ${(file.size / 1024 / 1024).toFixed(1)}MB` : ''}`
+                        : uploadState.status === 'processing'
+                          ? 'Generating thumbnail, extracting metadata, and preparing transcription...'
+                          : 'Almost done...'}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-semibold text-primary">{uploadState.progress}%</p>
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div className="space-y-1">
+                <Progress value={uploadState.progress} className="w-full h-2" />
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>
+                    {uploadState.status === 'uploading'
+                      ? 'Your video is being securely transferred'
+                      : 'AI is analyzing your video content'}
+                  </span>
+                  {uploadState.status === 'uploading' && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleCancelUpload}
+                      className="h-6 text-xs text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="h-3 w-3 mr-1" />
+                      Cancel
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           )}
