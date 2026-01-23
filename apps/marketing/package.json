@@ -22,7 +22,7 @@
     "@vercel/microfrontends": "catalog:",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
-    "framer-motion": "catalog:",
+    "motion": "catalog:",
     "lucide-react": "catalog:",
     "next": "catalog:",
     "next-themes": "catalog:",

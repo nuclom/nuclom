@@ -102,7 +102,7 @@ catalog:
   drizzle-orm: 0.45.1
   effect: 3.19.14
   embla-carousel-react: 8.6.0
-  framer-motion: ^12.29.0
+  motion: ^12.29.0
   googleapis: 170.1.0
   input-otp: 1.4.2
   jsdom: 27.4.0
