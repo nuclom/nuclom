@@ -4,6 +4,10 @@ name: E2E Trigger
 # This workflow coordinates between SaaS and Marketing deployments
 # and triggers E2E tests when deployments are ready
 #
+# With "Skip Unaffected Projects" enabled in Vercel, not all apps will be built
+# on every commit. This workflow uses Turborepo's --dry-run to detect which apps
+# will be built and only waits for those deployments.
+#
 # NOTE: repository_dispatch events only trigger workflows on the default branch.
 # The workflow will still checkout the correct commit SHA for testing.
 #
@@ -41,8 +45,65 @@ jobs:
           echo "  Git SHA: ${{ github.event.client_payload.git.sha }}"
           echo "  Git Ref: ${{ github.event.client_payload.git.ref }}"
 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.client_payload.git.sha }}
+          fetch-depth: 2 # Need parent commit for turbo comparison
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Detect affected apps with Turborepo
+        id: turbo-check
+        run: |
+          echo "Checking which apps are affected by this commit..."
+
+          # Use turbo build --dry-run to detect affected packages
+          # Compare against HEAD~1 to see what changed in this commit
+          SAAS_AFFECTED="false"
+          MARKETING_AFFECTED="false"
+
+          # Check if saas app is affected
+          SAAS_DRY=$(pnpm turbo build --filter=nuclom-saas --dry-run=json 2>/dev/null || echo '{"packages":[]}')
+          if echo "$SAAS_DRY" | grep -q '"nuclom-saas"'; then
+            # Further check if there are actual tasks to run (not all cached)
+            SAAS_TASKS=$(echo "$SAAS_DRY" | jq -r '.tasks | length // 0')
+            if [ "$SAAS_TASKS" -gt 0 ]; then
+              SAAS_AFFECTED="true"
+            fi
+          fi
+
+          # Check if marketing app is affected
+          MARKETING_DRY=$(pnpm turbo build --filter=nuclom-marketing --dry-run=json 2>/dev/null || echo '{"packages":[]}')
+          if echo "$MARKETING_DRY" | grep -q '"nuclom-marketing"'; then
+            MARKETING_TASKS=$(echo "$MARKETING_DRY" | jq -r '.tasks | length // 0')
+            if [ "$MARKETING_TASKS" -gt 0 ]; then
+              MARKETING_AFFECTED="true"
+            fi
+          fi
+
+          echo "Turborepo analysis:"
+          echo "  SaaS affected: $SAAS_AFFECTED"
+          echo "  Marketing affected: $MARKETING_AFFECTED"
+
+          echo "saas_affected=$SAAS_AFFECTED" >> $GITHUB_OUTPUT
+          echo "marketing_affected=$MARKETING_AFFECTED" >> $GITHUB_OUTPUT
+
       - name: Check deployments and trigger E2E
         uses: actions/github-script@v7
+        env:
+          SAAS_AFFECTED: ${{ steps.turbo-check.outputs.saas_affected }}
+          MARKETING_AFFECTED: ${{ steps.turbo-check.outputs.marketing_affected }}
         with:
           script: |
             const payload = context.payload.client_payload;
@@ -50,6 +111,10 @@ jobs:
             const currentUrl = payload.url;
             const projectName = payload.project.name;
             const gitRef = payload.git.ref;
+
+            // Get Turborepo analysis results
+            const expectSaas = process.env.SAAS_AFFECTED === 'true';
+            const expectMarketing = process.env.MARKETING_AFFECTED === 'true';
 
             // Identify deployment type from project name
             const isSaas = projectName.includes('nuclom-saas') || projectName === 'nuclom-saas';
@@ -63,6 +128,10 @@ jobs:
             console.log(`Processing ${isSaas ? 'nuclom-saas' : 'nuclom-marketing'} deployment`);
             console.log(`  SHA: ${sha}`);
             console.log(`  URL: ${currentUrl}`);
+
+            console.log(`Expected deployments (from Turborepo):`);
+            console.log(`  SaaS: ${expectSaas ? 'expected' : 'skipped (no changes)'}`);
+            console.log(`  Marketing: ${expectMarketing ? 'expected' : 'skipped (no changes)'}`);
 
             // Helper to check all deployment statuses for this SHA
             async function checkDeployments() {
@@ -98,14 +167,16 @@ jobs:
             }
 
             // Helper to trigger E2E workflow
-            async function triggerE2E(saasUrl, marketingUrl) {
+            async function triggerE2E(saasUrl, marketingUrl, testSaas, testMarketing) {
               // Use git ref from deployment, fallback to default branch
               const ref = gitRef || context.payload.repository.default_branch;
 
               console.log(`Triggering E2E workflow`);
               console.log(`  Ref: ${ref}`);
-              console.log(`  SaaS URL: ${saasUrl}`);
-              console.log(`  Marketing URL: ${marketingUrl}`);
+              console.log(`  SaaS URL: ${saasUrl || '(skipped)'}`);
+              console.log(`  Marketing URL: ${marketingUrl || '(skipped)'}`);
+              console.log(`  Test SaaS: ${testSaas}`);
+              console.log(`  Test Marketing: ${testMarketing}`);
 
               await github.rest.actions.createWorkflowDispatch({
                 owner: context.repo.owner,
@@ -113,8 +184,10 @@ jobs:
                 workflow_id: 'e2e.yml',
                 ref: ref,
                 inputs: {
-                  saas_url: saasUrl,
-                  marketing_url: marketingUrl,
+                  saas_url: saasUrl || '',
+                  marketing_url: marketingUrl || '',
+                  test_saas: String(testSaas),
+                  test_marketing: String(testMarketing),
                   triggered_by_sha: sha
                 }
               });
@@ -137,20 +210,20 @@ jobs:
             console.log(`  SaaS: ${saasUrl || 'not ready'}`);
             console.log(`  Marketing: ${marketingUrl || 'not ready'}`);
 
-            // Both deployments ready - trigger E2E tests
-            if (saasUrl && marketingUrl) {
-              console.log('Both deployments ready, triggering E2E tests');
-              await triggerE2E(saasUrl, marketingUrl);
+            // Check if all expected deployments are ready
+            const saasReady = !expectSaas || saasUrl;
+            const marketingReady = !expectMarketing || marketingUrl;
+
+            if (saasReady && marketingReady) {
+              console.log('All expected deployments ready, triggering E2E tests');
+              await triggerE2E(saasUrl, marketingUrl, expectSaas, expectMarketing);
               return;
             }
 
-            // Only one deployment ready - wait for the other deployment's event
-            // The concurrency group ensures only one trigger job runs at a time per SHA,
-            // so whichever deployment finishes second will see both URLs and trigger E2E
-            if (saasUrl) {
-              console.log('SaaS ready, waiting for marketing deployment event...');
-            } else if (marketingUrl) {
-              console.log('Marketing ready, waiting for SaaS deployment event...');
-            } else {
-              console.log('No deployments ready yet.');
+            // Not all expected deployments are ready - wait for the other deployment's event
+            if (!saasReady) {
+              console.log('Waiting for SaaS deployment event...');
+            }
+            if (!marketingReady) {
+              console.log('Waiting for Marketing deployment event...');
             }
