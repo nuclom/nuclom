@@ -9,14 +9,9 @@ import {
 import { CachePresets, getCacheControlHeader } from '@nuclom/lib/api-utils';
 import { VideoRepository } from '@nuclom/lib/effect';
 import { Auth } from '@nuclom/lib/effect/services/auth';
-import {
-  CreateVideoSchema,
-  GetVideosSchema,
-  sanitizeDescription,
-  sanitizeTitle,
-  validateQueryParams,
-  validateRequestBody,
-} from '@nuclom/lib/validation';
+import { validateQueryParams, validateRequestBody } from '@nuclom/lib/validation';
+import { sanitizeDescription, sanitizeTitle } from '@nuclom/lib/validation/sanitize';
+import { CreateVideoSchema, GetVideosSchema } from '@nuclom/lib/validation/schemas';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 

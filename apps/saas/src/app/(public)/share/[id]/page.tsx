@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { PasswordProtectedVideo } from '@/components/video/password-protected-video';
 
 // Dynamic import for video player - reduces initial bundle size
-const VideoPlayer = dynamic(() => import('@/components/video/video-player').then((m) => m.VideoPlayer), {
+const VideoPlayer = dynamic(() => import('@/components/video/video-player/video-player').then((m) => m.VideoPlayer), {
   ssr: false,
   loading: () => (
     <div className="aspect-video bg-black rounded-lg flex items-center justify-center">

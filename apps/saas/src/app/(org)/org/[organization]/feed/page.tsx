@@ -5,7 +5,7 @@ import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 
-import { KnowledgeFeed } from '@/components/feed';
+import { KnowledgeFeed } from '@/components/feed/knowledge-feed';
 
 // =============================================================================
 // Loading Skeleton

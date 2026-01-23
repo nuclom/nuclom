@@ -1,3 +1,5 @@
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent } from '@nuclom/ui/card';
 import { Link } from '@vercel/microfrontends/next/client';
 import {
   AlertTriangle,
@@ -13,8 +15,6 @@ import {
   XCircle,
 } from 'lucide-react';
 import { CopyrightYear } from '@/components/copyright-year';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 
 export const metadata = {
   title: 'Content Policy',

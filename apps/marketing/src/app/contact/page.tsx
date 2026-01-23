@@ -1,11 +1,11 @@
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Input } from '@nuclom/ui/input';
+import { Label } from '@nuclom/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@nuclom/ui/select';
+import { Textarea } from '@nuclom/ui/textarea';
 import { Link } from '@vercel/microfrontends/next/client';
 import { ArrowLeft, Clock, Mail, MapPin, Phone, Play } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 
 export default function ContactPage() {
   return (

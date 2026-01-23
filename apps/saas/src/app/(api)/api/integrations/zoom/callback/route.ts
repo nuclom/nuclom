@@ -1,11 +1,11 @@
 import { Zoom } from '@nuclom/lib/effect/services/zoom';
+import { ZoomIntegrationLayer } from '@nuclom/lib/integrations/layer-builders';
 import {
   errorRedirect,
   saveIntegration,
   successRedirect,
   validateOAuthCallback,
-  ZoomIntegrationLayer,
-} from '@nuclom/lib/integrations';
+} from '@nuclom/lib/integrations/oauth-handler';
 import { logger } from '@nuclom/lib/logger';
 import { Effect } from 'effect';
 

@@ -4,7 +4,7 @@ import { getCachedOrganizationBySlug } from '@nuclom/lib/effect';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { TopicList } from '@/components/topics';
+import { TopicList } from '@/components/topics/topic-list';
 
 // =============================================================================
 // Loading Skeleton

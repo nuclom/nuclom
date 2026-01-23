@@ -1,11 +1,11 @@
 import { GoogleMeet } from '@nuclom/lib/effect/services/google-meet';
+import { GoogleIntegrationLayer } from '@nuclom/lib/integrations/layer-builders';
 import {
   errorRedirect,
-  GoogleIntegrationLayer,
   saveIntegration,
   successRedirect,
   validateOAuthCallback,
-} from '@nuclom/lib/integrations';
+} from '@nuclom/lib/integrations/oauth-handler';
 import { logger } from '@nuclom/lib/logger';
 import { Effect } from 'effect';
 

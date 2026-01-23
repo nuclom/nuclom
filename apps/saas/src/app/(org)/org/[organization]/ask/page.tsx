@@ -4,7 +4,7 @@ import { getCachedOrganizationBySlug } from '@nuclom/lib/effect';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { KnowledgeQAContainer } from '@/components/knowledge-qa';
+import { KnowledgeQAContainer } from '@/components/knowledge-qa/knowledge-qa-container';
 
 // =============================================================================
 // Loading Skeleton
