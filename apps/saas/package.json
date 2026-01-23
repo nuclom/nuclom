@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "next build",
+    "build": "NODE_OPTIONS=--max-old-space-size=6144 next build",
     "dev": "next dev --port $(microfrontends port)",
     "tsc": "next typegen && tsgo --noEmit",
     "start": "next start -p 3091",

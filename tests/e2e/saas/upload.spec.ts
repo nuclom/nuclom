@@ -11,33 +11,45 @@ test.describe('Video Upload Page', () => {
       // Wait for page to load (the page uses Suspense which may show skeleton first)
       await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
-       // The page uses Suspense so content may load after networkidle.
-       // Use poll to wait for upload elements to appear.
-       // First ensure page has basic content loaded
-       await page.waitForSelector('body', { timeout: 5000 });
+      // The page uses Suspense so content may load after networkidle.
+      // Use poll to wait for upload elements to appear.
+      // First ensure page has basic content loaded
+      await page.waitForSelector('body', { timeout: 5000 });
 
-       await expect
-         .poll(
-           async () => {
-             // Check for upload page elements - look for heading or upload-related content
-             const hasUploadHeading = await page
-               .getByRole('heading', { name: /upload/i })
-               .first()
-               .isVisible()
-               .catch(() => false);
-             const hasDropzone = await page.locator('[role="button"]').first().isVisible().catch(() => false);
-             const hasUploadText = await page.getByText(/drag and drop|choose files/i).first().isVisible().catch(() => false);
-             const hasSkeleton = await page.locator('.animate-pulse, [data-skeleton]').first().isVisible().catch(() => false);
+      await expect
+        .poll(
+          async () => {
+            // Check for upload page elements - look for heading or upload-related content
+            const hasUploadHeading = await page
+              .getByRole('heading', { name: /upload/i })
+              .first()
+              .isVisible()
+              .catch(() => false);
+            const hasDropzone = await page
+              .locator('[role="button"]')
+              .first()
+              .isVisible()
+              .catch(() => false);
+            const hasUploadText = await page
+              .getByText(/drag and drop|choose files/i)
+              .first()
+              .isVisible()
+              .catch(() => false);
+            const hasSkeleton = await page
+              .locator('.animate-pulse, [data-skeleton]')
+              .first()
+              .isVisible()
+              .catch(() => false);
 
-             // Log debug info
-             console.log('Upload check:', { hasUploadHeading, hasDropzone, hasUploadText, hasSkeleton });
+            // Log debug info
+            console.log('Upload check:', { hasUploadHeading, hasDropzone, hasUploadText, hasSkeleton });
 
-             // If we have upload elements OR no skeleton loading, we're done
-             return (hasUploadHeading || hasDropzone || hasUploadText) || !hasSkeleton;
-           },
-           { timeout: 10000, message: 'Upload page elements should be visible after loading' },
-         )
-         .toBe(true);
+            // If we have upload elements OR no skeleton loading, we're done
+            return hasUploadHeading || hasDropzone || hasUploadText || !hasSkeleton;
+          },
+          { timeout: 10000, message: 'Upload page elements should be visible after loading' },
+        )
+        .toBe(true);
     });
 
     test('should have back to videos link', async ({ authenticatedPage: page }) => {
@@ -47,25 +59,36 @@ test.describe('Video Upload Page', () => {
       // Wait for Suspense content to load
       await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
-       // The "Back to Videos" link may take a moment to appear due to Suspense
-       // Use poll to wait for it to become visible
-       await expect
-         .poll(
-           async () => {
-             // Try multiple selectors: the link role with text, or just the text
-             const hasBackLink = await page.getByRole('link', { name: /back to videos/i }).isVisible().catch(() => false);
-             const hasBackText = await page.getByText(/back to videos/i).first().isVisible().catch(() => false);
-             const hasSkeleton = await page.locator('.animate-pulse, [data-skeleton]').first().isVisible().catch(() => false);
+      // The "Back to Videos" link may take a moment to appear due to Suspense
+      // Use poll to wait for it to become visible
+      await expect
+        .poll(
+          async () => {
+            // Try multiple selectors: the link role with text, or just the text
+            const hasBackLink = await page
+              .getByRole('link', { name: /back to videos/i })
+              .isVisible()
+              .catch(() => false);
+            const hasBackText = await page
+              .getByText(/back to videos/i)
+              .first()
+              .isVisible()
+              .catch(() => false);
+            const hasSkeleton = await page
+              .locator('.animate-pulse, [data-skeleton]')
+              .first()
+              .isVisible()
+              .catch(() => false);
 
-             // Log debug info
-             console.log('Back link check:', { hasBackLink, hasBackText, hasSkeleton });
+            // Log debug info
+            console.log('Back link check:', { hasBackLink, hasBackText, hasSkeleton });
 
-             // If we have the link OR no skeleton loading, we're done
-             return (hasBackLink || hasBackText) || !hasSkeleton;
-           },
-           { timeout: 10000, message: 'Back to Videos link should be visible' },
-         )
-         .toBe(true);
+            // If we have the link OR no skeleton loading, we're done
+            return hasBackLink || hasBackText || !hasSkeleton;
+          },
+          { timeout: 10000, message: 'Back to Videos link should be visible' },
+        )
+        .toBe(true);
     });
 
     test('should navigate back to organization page', async ({ authenticatedPage: page }) => {
@@ -96,9 +119,21 @@ test.describe('Video Upload Page', () => {
       await expect
         .poll(
           async () => {
-            const hasDropZone = await page.locator("[role='button']").first().isVisible().catch(() => false);
-            const hasDragText = await page.getByText(/drag and drop/i).first().isVisible().catch(() => false);
-            const hasChooseFiles = await page.getByText(/choose files/i).first().isVisible().catch(() => false);
+            const hasDropZone = await page
+              .locator("[role='button']")
+              .first()
+              .isVisible()
+              .catch(() => false);
+            const hasDragText = await page
+              .getByText(/drag and drop/i)
+              .first()
+              .isVisible()
+              .catch(() => false);
+            const hasChooseFiles = await page
+              .getByText(/choose files/i)
+              .first()
+              .isVisible()
+              .catch(() => false);
             return hasDropZone || hasDragText || hasChooseFiles;
           },
           { timeout: 15000, message: 'Drag and drop upload area should be visible' },

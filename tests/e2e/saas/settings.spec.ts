@@ -29,31 +29,41 @@ test.describe('Settings Pages', () => {
       const nameInput = page.getByLabel(/full name/i);
       const authRequired = page.getByText('Authentication Required');
 
-       // Wait for either profile content OR auth required message
-       // First check if page has loaded basic content
-       await page.waitForSelector('body', { timeout: 5000 });
+      // Wait for either profile content OR auth required message
+      // First check if page has loaded basic content
+      await page.waitForSelector('body', { timeout: 5000 });
 
-       await expect
-         .poll(
-           async () => {
-             const hasProfileTitle = await profileTitle.first().isVisible().catch(() => false);
-             const hasNameInput = await nameInput.isVisible().catch(() => false);
-             const hasAuthRequired = await authRequired.isVisible().catch(() => false);
-             const hasLoadingSpinner = await page.locator('[role="status"], .animate-spin').first().isVisible().catch(() => false);
+      await expect
+        .poll(
+          async () => {
+            const hasProfileTitle = await profileTitle
+              .first()
+              .isVisible()
+              .catch(() => false);
+            const hasNameInput = await nameInput.isVisible().catch(() => false);
+            const hasAuthRequired = await authRequired.isVisible().catch(() => false);
+            const hasLoadingSpinner = await page
+              .locator('[role="status"], .animate-spin')
+              .first()
+              .isVisible()
+              .catch(() => false);
 
-             // Log debug info
-             console.log('Auth check:', { hasProfileTitle, hasNameInput, hasAuthRequired, hasLoadingSpinner });
+            // Log debug info
+            console.log('Auth check:', { hasProfileTitle, hasNameInput, hasAuthRequired, hasLoadingSpinner });
 
-             // If we have any of the expected elements OR no loading spinner, we're done
-             return (hasProfileTitle || hasNameInput || hasAuthRequired) || !hasLoadingSpinner;
-           },
-           { timeout: 10000, message: 'Profile page should finish loading' },
-         )
-         .toBe(true);
+            // If we have any of the expected elements OR no loading spinner, we're done
+            return hasProfileTitle || hasNameInput || hasAuthRequired || !hasLoadingSpinner;
+          },
+          { timeout: 10000, message: 'Profile page should finish loading' },
+        )
+        .toBe(true);
 
       // Now check if we got profile content (auth working) or auth required (auth not working)
-      const isAuthenticated = await profileTitle.first().isVisible().catch(() => false) ||
-                              await nameInput.isVisible().catch(() => false);
+      const isAuthenticated =
+        (await profileTitle
+          .first()
+          .isVisible()
+          .catch(() => false)) || (await nameInput.isVisible().catch(() => false));
 
       // If authenticated, verify profile form elements exist
       if (isAuthenticated) {

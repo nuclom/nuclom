@@ -58,9 +58,6 @@ const nextConfig: NextConfig = {
       'posthog-js',
       'ai',
     ],
-    // Reduce parallelism during build to prevent OOM on Vercel
-    workerThreads: false,
-    cpus: 2,
   },
 
   // Image optimization configuration
