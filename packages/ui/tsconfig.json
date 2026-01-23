@@ -5,6 +5,7 @@
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
+    "incremental": true,
     "esModuleInterop": true,
     "module": "preserve",
     "moduleResolution": "bundler",
