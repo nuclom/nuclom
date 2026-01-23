@@ -50,8 +50,6 @@ export {
   createCachedQuery,
   createVideo as serverCreateVideo,
   deleteVideo as serverDeleteVideo,
-  // Legacy aliases (deprecated)
-  getChannels as getCachedChannels,
   getCollectionProgress as getCachedCollectionProgress,
   // Collection queries
   getCollections as getCachedCollections,
@@ -60,10 +58,6 @@ export {
   // Organization queries
   getOrganizationBySlug as getCachedOrganizationBySlug,
   getOrganizations as getCachedOrganizations,
-  getSeries as getCachedSeries,
-  getSeriesProgress as getCachedSeriesProgress,
-  getSeriesWithProgress as getCachedSeriesWithProgress,
-  getSeriesWithVideos as getCachedSeriesWithVideos,
   // Video queries
   getUserVideoProgress as getCachedUserVideoProgress,
   getVideo as getCachedVideo,
@@ -77,9 +71,6 @@ export {
   revalidateCollections,
   revalidateOrganization,
   revalidateOrganizations,
-  revalidateSeries,
-  revalidateSeriesById,
-  revalidateSeriesProgress,
   revalidateVideo,
   revalidateVideoProgress,
   revalidateVideos,
@@ -268,7 +259,6 @@ export {
   exchangeZoomCodeForToken,
   extractActionItems,
   extractDecisions,
-  extractKeyFromUrl,
   extractMetadata,
   findOneOrFail,
   findSimilarContentItems,

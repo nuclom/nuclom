@@ -35,7 +35,7 @@ export const ErrorCodes = {
   NOT_FOUND_VIDEO: 'NOT_FOUND_VIDEO',
   NOT_FOUND_USER: 'NOT_FOUND_USER',
   NOT_FOUND_ORGANIZATION: 'NOT_FOUND_ORGANIZATION',
-  NOT_FOUND_SERIES: 'NOT_FOUND_SERIES',
+  NOT_FOUND_COLLECTION: 'NOT_FOUND_COLLECTION',
   NOT_FOUND_PLAN: 'NOT_FOUND_PLAN',
 
   // Conflict (409)
@@ -366,7 +366,7 @@ export const errorMessages: Record<ErrorCode, string> = {
   [ErrorCodes.NOT_FOUND_VIDEO]: 'The video was not found.',
   [ErrorCodes.NOT_FOUND_USER]: 'The user was not found.',
   [ErrorCodes.NOT_FOUND_ORGANIZATION]: 'The organization was not found.',
-  [ErrorCodes.NOT_FOUND_SERIES]: 'The series was not found.',
+  [ErrorCodes.NOT_FOUND_COLLECTION]: 'The collection was not found.',
   [ErrorCodes.NOT_FOUND_PLAN]: 'The plan was not found.',
 
   // Conflict

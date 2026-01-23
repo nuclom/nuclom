@@ -22,7 +22,6 @@ interface ImportHubProps {
   organizationId: string;
   organizationSlug: string;
   authorId: string;
-  channelId?: string;
   collectionId?: string;
   onImportComplete?: (count: number) => void;
 }
@@ -40,7 +39,6 @@ export function ImportHub({
   organizationId,
   organizationSlug,
   authorId,
-  channelId,
   collectionId,
   onImportComplete,
 }: ImportHubProps) {
@@ -170,7 +168,6 @@ export function ImportHub({
               <BulkVideoUpload
                 organizationId={organizationId}
                 authorId={authorId}
-                channelId={channelId}
                 collectionId={collectionId}
                 onUploadComplete={handleBulkUploadComplete}
                 onCancel={() => setOpen(false)}
@@ -273,7 +270,6 @@ interface ImportButtonProps {
   organizationId: string;
   organizationSlug: string;
   authorId: string;
-  channelId?: string;
   variant?: 'default' | 'outline' | 'ghost';
   size?: 'default' | 'sm' | 'lg' | 'icon';
 }
@@ -282,16 +278,8 @@ export function ImportButton({
   organizationId,
   organizationSlug,
   authorId,
-  channelId,
   variant: _variant = 'default', // Reserved for future use
   size: _size = 'default', // Reserved for future use
 }: ImportButtonProps) {
-  return (
-    <ImportHub
-      organizationId={organizationId}
-      organizationSlug={organizationSlug}
-      authorId={authorId}
-      channelId={channelId}
-    />
-  );
+  return <ImportHub organizationId={organizationId} organizationSlug={organizationSlug} authorId={authorId} />;
 }

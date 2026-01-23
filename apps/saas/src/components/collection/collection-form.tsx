@@ -1,6 +1,6 @@
 'use client';
 
-import type { SeriesWithVideoCount } from '@nuclom/lib/types';
+import type { CollectionWithVideoCount } from '@nuclom/lib/types';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -17,25 +17,25 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 
-interface SeriesFormProps {
+interface CollectionFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   organizationId: string;
-  series?: SeriesWithVideoCount | null;
+  collection?: CollectionWithVideoCount | null;
   onSuccess?: () => void;
 }
 
-export function SeriesForm({ open, onOpenChange, organizationId, series, onSuccess }: SeriesFormProps) {
+export function CollectionForm({ open, onOpenChange, organizationId, collection, onSuccess }: CollectionFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [name, setName] = useState(series?.name ?? '');
-  const [description, setDescription] = useState(series?.description ?? '');
-  const [thumbnailUrl, setThumbnailUrl] = useState(series?.thumbnailUrl ?? '');
-  const [isPublic, setIsPublic] = useState(series?.isPublic ?? false);
+  const [name, setName] = useState(collection?.name ?? '');
+  const [description, setDescription] = useState(collection?.description ?? '');
+  const [thumbnailUrl, setThumbnailUrl] = useState(collection?.thumbnailUrl ?? '');
+  const [isPublic, setIsPublic] = useState(collection?.isPublic ?? false);
 
-  const isEditing = !!series;
+  const isEditing = !!collection;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +43,7 @@ export function SeriesForm({ open, onOpenChange, organizationId, series, onSucce
     setError(null);
 
     try {
-      const url = isEditing ? `/api/series/${series.id}` : '/api/series';
+      const url = isEditing ? `/api/collections/${collection.id}` : '/api/collections';
       const method = isEditing ? 'PATCH' : 'POST';
 
       const response = await fetch(url, {
@@ -60,7 +60,7 @@ export function SeriesForm({ open, onOpenChange, organizationId, series, onSucce
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to save series');
+        throw new Error(data.error || 'Failed to save collection');
       }
 
       onOpenChange(false);
@@ -76,10 +76,10 @@ export function SeriesForm({ open, onOpenChange, organizationId, series, onSucce
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
       // Reset form when closing
-      setName(series?.name ?? '');
-      setDescription(series?.description ?? '');
-      setThumbnailUrl(series?.thumbnailUrl ?? '');
-      setIsPublic(series?.isPublic ?? false);
+      setName(collection?.name ?? '');
+      setDescription(collection?.description ?? '');
+      setThumbnailUrl(collection?.thumbnailUrl ?? '');
+      setIsPublic(collection?.isPublic ?? false);
       setError(null);
     }
     onOpenChange(newOpen);
@@ -90,9 +90,9 @@ export function SeriesForm({ open, onOpenChange, organizationId, series, onSucce
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{isEditing ? 'Edit Series' : 'Create Series'}</DialogTitle>
+            <DialogTitle>{isEditing ? 'Edit Collection' : 'Create Collection'}</DialogTitle>
             <DialogDescription>
-              {isEditing ? 'Update the series details below.' : 'Create a new series to organize your videos.'}
+              {isEditing ? 'Update the collection details below.' : 'Create a new collection to organize your videos.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -103,7 +103,7 @@ export function SeriesForm({ open, onOpenChange, organizationId, series, onSucce
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Enter series name"
+                placeholder="Enter collection name"
                 required
               />
             </div>
@@ -114,7 +114,7 @@ export function SeriesForm({ open, onOpenChange, organizationId, series, onSucce
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Enter series description"
+                placeholder="Enter collection description"
                 rows={3}
               />
             </div>
@@ -132,8 +132,8 @@ export function SeriesForm({ open, onOpenChange, organizationId, series, onSucce
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="isPublic">Public Series</Label>
-                <p className="text-sm text-muted-foreground">Make this series visible to everyone</p>
+                <Label htmlFor="isPublic">Public Collection</Label>
+                <p className="text-sm text-muted-foreground">Make this collection visible to everyone</p>
               </div>
               <Switch id="isPublic" checked={isPublic} onCheckedChange={setIsPublic} />
             </div>
@@ -146,7 +146,7 @@ export function SeriesForm({ open, onOpenChange, organizationId, series, onSucce
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting || !name.trim()}>
-              {isSubmitting ? 'Saving...' : isEditing ? 'Save Changes' : 'Create Series'}
+              {isSubmitting ? 'Saving...' : isEditing ? 'Save Changes' : 'Create Collection'}
             </Button>
           </DialogFooter>
         </form>

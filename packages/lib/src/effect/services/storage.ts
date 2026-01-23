@@ -79,12 +79,6 @@ export interface StorageService {
   readonly generatePresignedDownloadUrl: (key: string, expiresIn?: number) => Effect.Effect<string, PresignedUrlError>;
 
   /**
-   * Extract the R2 key from a stored URL
-   * Returns null if the URL format is invalid
-   */
-  readonly extractKeyFromUrl: (url: string) => string | null;
-
-  /**
    * Generate a unique file key
    */
   readonly generateFileKey: (
@@ -153,18 +147,6 @@ const makeStorageService = Effect.gen(function* () {
       return Effect.fail(StorageNotConfiguredError.default);
     }
     return Effect.succeed({ client: r2Client, bucket: bucketName, account: accountId });
-  };
-
-  /**
-   * Extract the R2 key from a stored URL
-   * URL format: https://{bucket}.{accountId}.r2.cloudflarestorage.com/{key}
-   */
-  const extractKeyFromUrl = (url: string): string | null => {
-    const parts = url.split('.r2.cloudflarestorage.com/');
-    if (parts.length !== 2) {
-      return null;
-    }
-    return parts[1];
   };
 
   const generateFileKey = (
@@ -332,7 +314,6 @@ const makeStorageService = Effect.gen(function* () {
     deleteFile,
     generatePresignedUploadUrl,
     generatePresignedDownloadUrl,
-    extractKeyFromUrl,
     generateFileKey,
     isConfigured,
   } satisfies StorageService;
@@ -395,15 +376,6 @@ export const generatePresignedDownloadUrl = (
   Effect.gen(function* () {
     const storage = yield* Storage;
     return yield* storage.generatePresignedDownloadUrl(key, expiresIn);
-  });
-
-/**
- * Extract R2 key from a stored URL
- */
-export const extractKeyFromUrl = (url: string): Effect.Effect<string | null, never, Storage> =>
-  Effect.gen(function* () {
-    const storage = yield* Storage;
-    return storage.extractKeyFromUrl(url);
   });
 
 /**

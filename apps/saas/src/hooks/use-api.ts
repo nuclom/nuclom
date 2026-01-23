@@ -89,12 +89,12 @@ function useApiQuery<T>(
 // =============================================================================
 
 export function useVideos(
-  params: { organizationId?: string; channelId?: string; seriesId?: string; page?: number; limit?: number } = {},
+  params: { organizationId?: string; collectionId?: string; page?: number; limit?: number } = {},
 ): UseApiState<PaginatedResponse<VideoWithAuthor>> {
-  const { organizationId, channelId, seriesId, page, limit } = params;
+  const { organizationId, collectionId, page, limit } = params;
   return useApiQuery(
-    () => videoApiEffect.getVideos({ organizationId, channelId, seriesId, page, limit }),
-    [organizationId, channelId, seriesId, page, limit],
+    () => videoApiEffect.getVideos({ organizationId, collectionId, page, limit }),
+    [organizationId, collectionId, page, limit],
   );
 }
 

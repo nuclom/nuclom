@@ -1,0 +1,156 @@
+name: E2E Trigger
+
+# Triggered by Vercel repository_dispatch events when deployments complete
+# This workflow coordinates between SaaS and Marketing deployments
+# and triggers E2E tests when deployments are ready
+#
+# NOTE: repository_dispatch events only trigger workflows on the default branch.
+# The workflow will still checkout the correct commit SHA for testing.
+#
+# See: https://github.com/vercel/repository-dispatch
+
+on:
+  repository_dispatch:
+    types:
+      # Deployment automatically promoted to production
+      - "vercel.deployment.success"
+      # Build finished, awaiting promotion (preview deployments)
+      - "vercel.deployment.ready"
+
+# No concurrency limit - each deployment event runs independently.
+# Whichever deployment finishes second will see both URLs ready and trigger E2E.
+# E2E workflow has its own SHA-based concurrency to prevent duplicate test runs.
+
+jobs:
+  trigger-e2e:
+    name: Check Deployments
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: read
+      actions: write # Required to trigger e2e.yml via workflow_dispatch
+
+    steps:
+      - name: Log deployment event
+        run: |
+          echo "Received Vercel deployment event"
+          echo "  Event type: ${{ github.event.action }}"
+          echo "  Project: ${{ github.event.client_payload.project.name }}"
+          echo "  URL: ${{ github.event.client_payload.url }}"
+          echo "  Environment: ${{ github.event.client_payload.environment }}"
+          echo "  Git SHA: ${{ github.event.client_payload.git.sha }}"
+          echo "  Git Ref: ${{ github.event.client_payload.git.ref }}"
+
+      - name: Check deployments and trigger E2E
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const payload = context.payload.client_payload;
+            const sha = payload.git.sha;
+            const currentUrl = payload.url;
+            const projectName = payload.project.name;
+            const gitRef = payload.git.ref;
+
+            // Identify deployment type from project name
+            const isSaas = projectName.includes('nuclom-saas') || projectName === 'nuclom-saas';
+            const isMarketing = projectName.includes('nuclom-marketing') || projectName === 'nuclom-marketing';
+
+            if (!isSaas && !isMarketing) {
+              console.log(`Ignoring deployment for project: ${projectName}`);
+              return;
+            }
+
+            console.log(`Processing ${isSaas ? 'nuclom-saas' : 'nuclom-marketing'} deployment`);
+            console.log(`  SHA: ${sha}`);
+            console.log(`  URL: ${currentUrl}`);
+
+            // Helper to check all deployment statuses for this SHA
+            async function checkDeployments() {
+              const { data: deployments } = await github.rest.repos.listDeployments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                sha: sha,
+                per_page: 20
+              });
+
+              let saasUrl = null;
+              let marketingUrl = null;
+
+              for (const deployment of deployments) {
+                const { data: statuses } = await github.rest.repos.listDeploymentStatuses({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  deployment_id: deployment.id,
+                  per_page: 1
+                });
+
+                if (statuses.length > 0 && statuses[0].state === 'success') {
+                  const statusUrl = statuses[0].environment_url || statuses[0].target_url;
+                  if (statusUrl?.includes('nuclom-saas')) {
+                    saasUrl = statusUrl;
+                  } else if (statusUrl?.includes('nuclom-marketing')) {
+                    marketingUrl = statusUrl;
+                  }
+                }
+              }
+
+              return { saasUrl, marketingUrl };
+            }
+
+            // Helper to trigger E2E workflow
+            async function triggerE2E(saasUrl, marketingUrl) {
+              // Use git ref from deployment, fallback to default branch
+              const ref = gitRef || context.payload.repository.default_branch;
+
+              console.log(`Triggering E2E workflow`);
+              console.log(`  Ref: ${ref}`);
+              console.log(`  SaaS URL: ${saasUrl}`);
+              console.log(`  Marketing URL: ${marketingUrl}`);
+
+              await github.rest.actions.createWorkflowDispatch({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'e2e.yml',
+                ref: ref,
+                inputs: {
+                  saas_url: saasUrl,
+                  marketing_url: marketingUrl,
+                  triggered_by_sha: sha
+                }
+              });
+
+              console.log('E2E workflow triggered successfully');
+            }
+
+            // Initial check - include the URL from the current event
+            let { saasUrl, marketingUrl } = await checkDeployments();
+
+            // The current event's URL might not be in GitHub's deployment API yet,
+            // so add it manually based on the project type
+            if (isSaas && !saasUrl) {
+              saasUrl = currentUrl;
+            } else if (isMarketing && !marketingUrl) {
+              marketingUrl = currentUrl;
+            }
+
+            console.log(`Current deployment status:`);
+            console.log(`  SaaS: ${saasUrl || 'not ready'}`);
+            console.log(`  Marketing: ${marketingUrl || 'not ready'}`);
+
+            // Both deployments ready - trigger E2E tests
+            if (saasUrl && marketingUrl) {
+              console.log('Both deployments ready, triggering E2E tests');
+              await triggerE2E(saasUrl, marketingUrl);
+              return;
+            }
+
+            // Only one deployment ready - wait for the other deployment's event
+            // The concurrency group ensures only one trigger job runs at a time per SHA,
+            // so whichever deployment finishes second will see both URLs and trigger E2E
+            if (saasUrl) {
+              console.log('SaaS ready, waiting for marketing deployment event...');
+            } else if (marketingUrl) {
+              console.log('Marketing ready, waiting for SaaS deployment event...');
+            } else {
+              console.log('No deployments ready yet.');
+            }

@@ -18,7 +18,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from '@nuclom/lib/image-utils';
-import type { SeriesVideoWithDetails } from '@nuclom/lib/types';
+import type { CollectionVideoWithDetails } from '@nuclom/lib/types';
 import { Link } from '@vercel/microfrontends/next/client';
 import { GripVertical, Play, Trash2 } from 'lucide-react';
 import Image from 'next/image';
@@ -27,7 +27,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
 interface SortableVideoItemProps {
-  item: SeriesVideoWithDetails;
+  item: CollectionVideoWithDetails;
   organization: string;
   onRemove: (videoId: string) => void;
   isRemoving: boolean;
@@ -103,9 +103,9 @@ function SortableVideoItem({ item, organization, onRemove, isRemoving }: Sortabl
 }
 
 interface SortableVideoListProps {
-  videos: SeriesVideoWithDetails[];
+  videos: CollectionVideoWithDetails[];
   organization: string;
-  seriesId: string;
+  collectionId: string;
   onReorder: (videoIds: string[]) => Promise<void>;
   onRemove: (videoId: string) => Promise<void>;
 }
@@ -113,7 +113,7 @@ interface SortableVideoListProps {
 export function SortableVideoList({
   videos,
   organization,
-  seriesId: _seriesId,
+  collectionId: _collectionId,
   onReorder,
   onRemove,
 }: SortableVideoListProps) {

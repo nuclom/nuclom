@@ -98,8 +98,7 @@ describe('useVideos', () => {
     const { result } = renderHook(() =>
       useVideos({
         organizationId: 'org-123',
-        channelId: 'channel-456',
-        seriesId: 'series-789',
+        collectionId: 'collection-789',
         page: 2,
         limit: 20,
       }),
@@ -107,8 +106,7 @@ describe('useVideos', () => {
 
     expect(videoApiEffect.getVideos).toHaveBeenCalledWith({
       organizationId: 'org-123',
-      channelId: 'channel-456',
-      seriesId: 'series-789',
+      collectionId: 'collection-789',
       page: 2,
       limit: 20,
     });

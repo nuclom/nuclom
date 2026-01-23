@@ -2,8 +2,7 @@
  * API Client
  *
  * Client-side API utilities for fetching data from the backend.
- * Uses Effect-TS internally while maintaining a Promise-based interface
- * for backwards compatibility with existing React components.
+ * Provides a Promise-based interface that wraps the Effect-TS client.
  */
 
 import { type Effect, Either } from 'effect';
@@ -18,7 +17,7 @@ import { HttpError, type ParseError } from './effect/errors';
 import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from './types';
 
 // =============================================================================
-// Error Class (Backwards Compatible)
+// Error Class
 // =============================================================================
 
 class ApiError extends Error {
@@ -55,7 +54,7 @@ const effectToPromise = async <T>(effect: Effect.Effect<T, HttpError | ParseErro
 
 export const videoApi = {
   async getVideos(
-    params: { organizationId?: string; channelId?: string; seriesId?: string; page?: number; limit?: number } = {},
+    params: { organizationId?: string; collectionId?: string; page?: number; limit?: number } = {},
   ): Promise<PaginatedResponse<VideoWithAuthor>> {
     return effectToPromise(videoApiEffect.getVideos(params));
   },
@@ -72,8 +71,7 @@ export const videoApi = {
     videoUrl?: string;
     authorId: string;
     organizationId: string;
-    channelId?: string;
-    seriesId?: string;
+    collectionId?: string;
   }): Promise<VideoWithDetails> {
     return effectToPromise(videoApiEffect.createVideo(data));
   },
@@ -86,8 +84,7 @@ export const videoApi = {
       duration: string;
       thumbnailUrl: string;
       videoUrl: string;
-      channelId: string;
-      seriesId: string;
+      collectionId: string;
     }>,
   ): Promise<VideoWithDetails> {
     return effectToPromise(videoApiEffect.updateVideo(id, data));
@@ -104,8 +101,7 @@ export const videoApi = {
       description?: string;
       organizationId: string;
       authorId: string;
-      channelId?: string;
-      seriesId?: string;
+      collectionId?: string;
     },
     onProgress?: (progress: number) => void,
   ): Promise<UploadResult> {

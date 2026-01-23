@@ -129,7 +129,7 @@ import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from '../ty
 
 export const videoApiEffect = {
   getVideos: (
-    params: { organizationId?: string; channelId?: string; seriesId?: string; page?: number; limit?: number } = {},
+    params: { organizationId?: string; collectionId?: string; page?: number; limit?: number } = {},
   ): Effect.Effect<PaginatedResponse<VideoWithAuthor>, HttpError | ParseError> => {
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
@@ -151,8 +151,7 @@ export const videoApiEffect = {
     videoUrl?: string;
     authorId: string;
     organizationId: string;
-    channelId?: string;
-    seriesId?: string;
+    collectionId?: string;
   }): Effect.Effect<VideoWithDetails, HttpError | ParseError> =>
     fetchEffect('/videos', {
       method: 'POST',
@@ -167,8 +166,7 @@ export const videoApiEffect = {
       duration: string;
       thumbnailUrl: string;
       videoUrl: string;
-      channelId: string;
-      seriesId: string;
+      collectionId: string;
     }>,
   ): Effect.Effect<VideoWithDetails, HttpError | ParseError> =>
     fetchEffect(`/videos/${id}`, {
@@ -233,8 +231,7 @@ export const uploadVideoEffect = (
     description?: string;
     organizationId: string;
     authorId: string;
-    channelId?: string;
-    seriesId?: string;
+    collectionId?: string;
   },
   onProgress?: (progress: number) => void,
 ): Effect.Effect<UploadResult, HttpError> =>
@@ -245,8 +242,7 @@ export const uploadVideoEffect = (
     if (metadata.description) formData.append('description', metadata.description);
     formData.append('organizationId', metadata.organizationId);
     formData.append('authorId', metadata.authorId);
-    if (metadata.channelId) formData.append('channelId', metadata.channelId);
-    if (metadata.seriesId) formData.append('seriesId', metadata.seriesId);
+    if (metadata.collectionId) formData.append('collectionId', metadata.collectionId);
 
     const xhr = new XMLHttpRequest();
 
