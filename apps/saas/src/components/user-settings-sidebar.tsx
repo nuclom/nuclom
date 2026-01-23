@@ -2,10 +2,16 @@
 
 import { cn } from '@nuclom/lib/utils';
 import { Link } from '@vercel/microfrontends/next/client';
-import { Bell, Link2, Search, Shield, User, UserCog, X } from 'lucide-react';
+import { Bell, ChevronRight, Link2, Search, Shield, User, UserCog, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 type NavItem = {
   href: string;
@@ -52,6 +58,105 @@ const navItems: NavItem[] = [
     description: 'Email and push notification preferences',
   },
 ];
+
+// Nav item with hover preview tooltip
+function NavItemWithPreview({
+  item,
+  isActive,
+  isSelected,
+  showDescription,
+  onClick,
+}: {
+  item: NavItem;
+  isActive: boolean;
+  isSelected: boolean;
+  showDescription: boolean;
+  onClick: () => void;
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const content = (
+    <Link
+      href={item.href}
+      className={cn(
+        'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
+        isActive
+          ? 'bg-accent text-accent-foreground shadow-sm'
+          : isSelected
+            ? 'bg-muted text-foreground'
+            : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
+      )}
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Icon with animation */}
+      <div
+        className={cn(
+          'flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200',
+          isActive
+            ? 'bg-primary/10 text-primary'
+            : isHovered
+              ? 'bg-muted text-foreground'
+              : 'text-muted-foreground',
+        )}
+      >
+        <item.icon className="h-4 w-4" />
+      </div>
+
+      {/* Label and description */}
+      <div className="flex-1 min-w-0">
+        <span className="block truncate">{item.label}</span>
+        {showDescription && (
+          <span className="block text-xs text-muted-foreground truncate mt-0.5">
+            {item.description}
+          </span>
+        )}
+      </div>
+
+      {/* Active indicator / Arrow */}
+      <ChevronRight
+        className={cn(
+          'h-4 w-4 transition-all duration-200',
+          isActive
+            ? 'opacity-100 text-primary'
+            : isHovered
+              ? 'opacity-100 translate-x-0.5'
+              : 'opacity-0',
+        )}
+      />
+    </Link>
+  );
+
+  // Only show tooltip when not searching (showDescription is false)
+  if (showDescription) {
+    return content;
+  }
+
+  return (
+    <TooltipProvider delayDuration={300}>
+      <Tooltip>
+        <TooltipTrigger asChild>{content}</TooltipTrigger>
+        <TooltipContent side="right" sideOffset={8} className="max-w-xs">
+          <div className="space-y-1">
+            <p className="font-medium text-sm">{item.label}</p>
+            <p className="text-xs text-muted-foreground">{item.description}</p>
+            <div className="flex flex-wrap gap-1 pt-1">
+              {item.keywords.slice(0, 4).map((keyword) => (
+                <span
+                  key={keyword}
+                  className="inline-flex px-1.5 py-0.5 bg-muted rounded text-[10px] text-muted-foreground"
+                >
+                  {keyword}
+                </span>
+              ))}
+            </div>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
 
 export function UserSettingsSidebar() {
   const pathname = usePathname();
@@ -178,29 +283,14 @@ export function UserSettingsSidebar() {
         <nav className="space-y-1" role="navigation" aria-label="Settings navigation">
           {filteredItems.length > 0 ? (
             filteredItems.map((item, index) => (
-              <Link
+              <NavItemWithPreview
                 key={item.href}
-                href={item.href}
-                className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                  isActive(item.href)
-                    ? 'bg-accent text-accent-foreground'
-                    : searchQuery && index === selectedIndex
-                      ? 'bg-muted text-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-foreground',
-                )}
+                item={item}
+                isActive={isActive(item.href)}
+                isSelected={searchQuery.length > 0 && index === selectedIndex}
+                showDescription={searchQuery.length > 0}
                 onClick={() => setSearchQuery('')}
-              >
-                <item.icon className="h-4 w-4 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <span className="block truncate">{item.label}</span>
-                  {searchQuery && (
-                    <span className="block text-xs text-muted-foreground truncate mt-0.5">
-                      {item.description}
-                    </span>
-                  )}
-                </div>
-              </Link>
+              />
             ))
           ) : (
             <div className="px-3 py-8 text-center">
