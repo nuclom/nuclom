@@ -721,7 +721,7 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
           storage: calculatePercentage(currentUsage.storageUsed, limits.storage),
           videos: calculatePercentage(currentUsage.videosUploaded, limits.videos),
           bandwidth: calculatePercentage(currentUsage.bandwidthUsed, limits.bandwidth),
-          aiRequests: calculatePercentage(currentUsage.aiRequests, 1000), // AI requests limit per month
+          aiRequests: calculatePercentage(currentUsage.aiRequests, limits.aiRequests),
         },
         overage,
         overageCharges: currentUsage.overageCharges,
