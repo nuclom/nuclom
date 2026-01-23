@@ -1,3 +1,6 @@
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
 import { Link } from '@vercel/microfrontends/next/client';
 import {
   ArrowRight,
@@ -39,9 +42,6 @@ import {
 } from 'lucide-react';
 import { MarketingFooter } from '@/components/marketing-footer';
 import { MarketingHeader } from '@/components/marketing-header';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const featureCategories = [
   {
@@ -540,7 +540,7 @@ export default function FeaturesPage() {
       </section>
 
       {/* Quick Navigation */}
-      <section className="py-8 px-4 sm:px-6 lg:px-8 border-b bg-muted/30 sticky top-16 z-40">
+      <section className="py-8 px-4 sm:px-6 lg:px-8 border-b bg-muted/30 top-16 z-40">
         <div className="w-full max-w-7xl mx-auto">
           <div className="flex flex-wrap gap-2 justify-center">
             {featureCategories.map((category) => (

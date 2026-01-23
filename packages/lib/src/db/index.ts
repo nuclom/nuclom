@@ -159,9 +159,6 @@ if (process.env.NODE_ENV !== 'test') {
   registerShutdownHandlers();
 }
 
-// =============================================================================
-// Backward Compatibility
-// =============================================================================
-
-// Re-export schema for convenience
-export * from './schema';
+// Note: For database schema, import directly from:
+// import { videos, users, ... } from '@nuclom/lib/db/schema/videos';
+// import { organizations, ... } from '@nuclom/lib/db/schema/auth';

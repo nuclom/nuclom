@@ -1,5 +1,9 @@
 'use client';
 
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Switch } from '@nuclom/ui/switch';
 import { Link } from '@vercel/microfrontends/next/client';
 import {
   ArrowRight,
@@ -21,10 +25,6 @@ import {
 import { useState } from 'react';
 import { MarketingFooter } from '@/components/marketing-footer';
 import { MarketingHeader } from '@/components/marketing-header';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
 const pricingPlans = {

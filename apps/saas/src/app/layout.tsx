@@ -2,7 +2,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { PrefetchCrossZoneLinks, PrefetchCrossZoneLinksProvider } from '@vercel/microfrontends/next/client';
 import type { Metadata, Viewport } from 'next';
 import type React from 'react';
-import { MiniPlayerProvider } from '@/components/mini-player';
+import { MiniPlayerProvider } from '@/components/mini-player/mini-player-provider';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';

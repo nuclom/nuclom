@@ -9,7 +9,7 @@ test.describe('Settings Pages', () => {
       await page.goto('/settings/profile');
       await expect(page).toHaveURL(/\/settings\/profile/);
 
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await expect(page).toHaveURL(/\/settings\/profile/);
     });
 
@@ -17,46 +17,16 @@ test.describe('Settings Pages', () => {
       await page.goto('/settings/profile');
       await expect(page).toHaveURL(/\/settings\/profile/);
 
-      // Wait for page to load
-      await page.waitForLoadState('networkidle');
+      // Wait for initial DOM content
+      await page.waitForLoadState('domcontentloaded');
 
-      // The page uses RequireAuth which shows a loading state while auth hydrates.
-      // It will show either:
-      // 1. Profile form (if authenticated)
-      // 2. "Authentication Required" (if not authenticated)
-      // 3. Loading spinner (while checking auth)
+      // The page uses RequireAuth - wait for either profile content or auth required message
       const profileTitle = page.getByText('Your Profile');
       const nameInput = page.getByLabel(/full name/i);
       const authRequired = page.getByText('Authentication Required');
 
-      // Wait for either profile content OR auth required message
-      // First check if page has loaded basic content
-      await page.waitForSelector('body', { timeout: 5000 });
-
-      await expect
-        .poll(
-          async () => {
-            const hasProfileTitle = await profileTitle
-              .first()
-              .isVisible()
-              .catch(() => false);
-            const hasNameInput = await nameInput.isVisible().catch(() => false);
-            const hasAuthRequired = await authRequired.isVisible().catch(() => false);
-            const hasLoadingSpinner = await page
-              .locator('[role="status"], .animate-spin')
-              .first()
-              .isVisible()
-              .catch(() => false);
-
-            // Log debug info
-            console.log('Auth check:', { hasProfileTitle, hasNameInput, hasAuthRequired, hasLoadingSpinner });
-
-            // If we have any of the expected elements OR no loading spinner, we're done
-            return hasProfileTitle || hasNameInput || hasAuthRequired || !hasLoadingSpinner;
-          },
-          { timeout: 10000, message: 'Profile page should finish loading' },
-        )
-        .toBe(true);
+      // Wait for page to show meaningful content
+      await expect(profileTitle.or(nameInput).or(authRequired).first()).toBeVisible({ timeout: 5000 });
 
       // Now check if we got profile content (auth working) or auth required (auth not working)
       const isAuthenticated =

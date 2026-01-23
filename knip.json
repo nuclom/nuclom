@@ -4,10 +4,10 @@
     ".": {
       "entry": [],
       "project": [],
-      "ignoreDependencies": ["turbo", "@typescript/native-preview", "@vercel/microfrontends", "knip", "lefthook"]
+      "ignoreDependencies": ["@typescript/native-preview", "@vercel/microfrontends"]
     },
     "apps/saas": {
-      "entry": ["src/workflows/index.ts!"],
+      "entry": ["src/workflows/*.ts!", "src/workflows/**/*.ts!"],
       "project": ["src/**/*.{ts,tsx}"],
       "ignore": [
         "src/**/*.test.ts",
@@ -56,7 +56,6 @@
         "@better-auth/sso",
         "@better-auth/stripe",
         "@effect/platform",
-        "@effect/platform-node",
         "@effect/sql",
         "@effect/sql-drizzle",
         "@effect/sql-pg",

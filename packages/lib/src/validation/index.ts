@@ -290,9 +290,9 @@ export const OrganizationIdParam = Schema.Struct({
   organizationId: Schema.String,
 });
 
-// Re-export file validation
-export * from './file-validation';
-// Re-export sanitization
-export * from './sanitize';
-// Re-export schemas
-export * from './schemas';
+// Note: For file validation, sanitization, and schemas, import directly:
+// import { ... } from "@nuclom/lib/validation/file-validation";
+// import { ... } from "@nuclom/lib/validation/sanitize";
+// import { ... } from "@nuclom/lib/validation/schemas";
+// Form utilities (useValidatedForm, etc.) are in ./form.ts:
+// import { useValidatedForm } from "@nuclom/lib/validation/form";

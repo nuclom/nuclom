@@ -5,7 +5,8 @@ import { Bot, Loader2, MessageSquare } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import useSWR from 'swr';
-import { ChatContainer, ChatConversationList, type Conversation, type Message } from '@/components/chat';
+import { ChatContainer, type Message } from '@/components/chat/chat-container';
+import { ChatConversationList, type Conversation } from '@/components/chat/chat-conversation-list';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 
 interface Organization {

@@ -1,8 +1,8 @@
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent } from '@nuclom/ui/card';
 import { Link } from '@vercel/microfrontends/next/client';
 import { ArrowLeft, Play } from 'lucide-react';
 import { CopyrightYear } from '@/components/copyright-year';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 
 export const metadata = {
   title: 'Privacy Policy',

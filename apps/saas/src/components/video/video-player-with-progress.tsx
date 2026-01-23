@@ -12,10 +12,10 @@ import { CheckCircle, Loader2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useCallback, useState } from 'react';
 import { useProgressFraction, useVideoProgress } from '@/hooks/use-video-progress';
-import type { VideoChapter, VideoProgress } from './video-player';
+import type { VideoChapter, VideoProgress } from './video-player/types';
 
 // Dynamic import for the video player - reduces initial bundle size
-const VideoPlayer = dynamic(() => import('./video-player').then((m) => m.VideoPlayer), {
+const VideoPlayer = dynamic(() => import('./video-player/video-player').then((m) => m.VideoPlayer), {
   ssr: false,
   loading: () => (
     <div className="aspect-video bg-black rounded-lg flex items-center justify-center">

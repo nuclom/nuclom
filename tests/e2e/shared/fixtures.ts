@@ -11,9 +11,9 @@ export const TEST_CONFIG = {
   // Test user credentials
   testUserEmail: process.env.E2E_TEST_USER_EMAIL,
   testUserPassword: process.env.E2E_TEST_USER_PASSWORD,
-  // Timeouts
-  navigationTimeout: 15000,
-  actionTimeout: 10000,
+  // Timeouts - reduced for faster tests (was: 15s/10s)
+  navigationTimeout: 5000,
+  actionTimeout: 5000,
 } as const;
 
 /**
@@ -66,13 +66,11 @@ export const test = base.extend<{
 export { expect } from '@playwright/test';
 
 /**
- * Helper to wait for page to be fully loaded
+ * Helper to wait for page to be fully loaded.
+ * Uses domcontentloaded instead of networkidle for speed.
  */
 export async function waitForPageLoad(page: Page): Promise<void> {
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForLoadState('networkidle').catch(() => {
-    // Network idle can timeout on slow connections, continue anyway
-  });
 }
 
 /**
