@@ -4,13 +4,7 @@
     ".": {
       "entry": [],
       "project": [],
-      "ignoreDependencies": [
-        "turbo",
-        "@typescript/native-preview",
-        "@vercel/microfrontends",
-        "knip",
-        "lefthook"
-      ]
+      "ignoreDependencies": ["turbo", "@typescript/native-preview", "@vercel/microfrontends", "knip", "lefthook"]
     },
     "apps/saas": {
       "entry": ["src/workflows/index.ts!"],
@@ -118,22 +112,12 @@
     "packages/ui": {
       "entry": ["src/**/*.tsx!"],
       "project": ["src/**/*.tsx"],
-      "ignoreDependencies": [
-        "@typescript/native-preview",
-        "@nuclom/config",
-        "tailwind-merge",
-        "clsx"
-      ]
+      "ignoreDependencies": ["@typescript/native-preview", "@nuclom/config", "tailwind-merge", "clsx"]
     },
     "packages/auth": {
       "entry": ["src/index.ts!", "src/client.ts!"],
       "project": ["src/**/*.ts"],
-      "ignoreDependencies": [
-        "@typescript/native-preview",
-        "@nuclom/config",
-        "drizzle-orm",
-        "stripe"
-      ]
+      "ignoreDependencies": ["@typescript/native-preview", "@nuclom/config", "drizzle-orm", "stripe"]
     },
     "packages/config": {
       "entry": [],
@@ -154,12 +138,7 @@
       "ignoreDependencies": ["@playwright/test"]
     }
   },
-  "ignore": [
-    "**/*.d.ts",
-    "**/node_modules/**",
-    "**/.next/**",
-    "**/dist/**"
-  ],
+  "ignore": ["**/*.d.ts", "**/node_modules/**", "**/.next/**", "**/dist/**"],
   "ignoreExportsUsedInFile": true,
   "rules": {
     "files": "error",
