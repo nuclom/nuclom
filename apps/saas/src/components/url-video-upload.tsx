@@ -370,22 +370,31 @@ export function UrlVideoUpload({
             Video URL
           </Label>
           <div className="flex gap-2">
-            <div className="relative flex-1">
-              {/* Platform indicator */}
-              {detectedPlatform && (
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
+            <div className="relative flex-1 group">
+              {/* Platform indicator with animation */}
+              <div
+                className={cn(
+                  'absolute left-3 top-1/2 -translate-y-1/2 z-10 transition-all duration-200',
+                  detectedPlatform ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+                )}
+              >
+                {detectedPlatform && (
                   <div className={cn('flex items-center', PLATFORMS[detectedPlatform].color)}>
                     {PLATFORMS[detectedPlatform].icon}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
               <Input
                 id="video-url-input"
                 type="url"
                 value={newUrl}
                 onChange={(e) => setNewUrl(e.target.value)}
-                placeholder="Paste video URL here..."
-                className={cn('pr-10', detectedPlatform && 'pl-11')}
+                placeholder="Paste a video URL (YouTube, Vimeo, Loom, or direct link)"
+                className={cn(
+                  'pr-10 transition-all duration-200',
+                  detectedPlatform && 'pl-11 border-primary/50 ring-1 ring-primary/20',
+                  !detectedPlatform && newUrl.trim() && 'border-orange-500/50'
+                )}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -398,42 +407,76 @@ export function UrlVideoUpload({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-foreground"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-foreground transition-colors"
                 onClick={handlePaste}
                 disabled={isImporting}
-                title="Paste from clipboard"
+                title="Paste from clipboard (Ctrl+V)"
               >
                 <Clipboard className="h-4 w-4" />
               </Button>
             </div>
-            <Button type="button" onClick={addUrl} disabled={!newUrl.trim() || isImporting}>
+            <Button
+              type="button"
+              onClick={addUrl}
+              disabled={!newUrl.trim() || isImporting}
+              className={cn(
+                'transition-all duration-200',
+                detectedPlatform && newUrl.trim() && 'bg-primary shadow-md'
+              )}
+            >
               <Plus className="h-4 w-4 mr-1" />
               Add
             </Button>
           </div>
 
-          {/* Supported platforms */}
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span>Supported:</span>
-            <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1">
-                <YouTubeIcon className="h-4 w-4" />
-                YouTube
-              </span>
-              <span className="flex items-center gap-1">
-                <VimeoIcon className="h-4 w-4" />
-                Vimeo
-              </span>
-              <span className="flex items-center gap-1">
-                <LoomIcon className="h-4 w-4" />
-                Loom
-              </span>
-              <span className="flex items-center gap-1">
-                <Link2 className="h-4 w-4" />
-                Direct links
-              </span>
+          {/* Platform detection feedback */}
+          {newUrl.trim() && (
+            <div
+              className={cn(
+                'flex items-center gap-2 text-xs transition-all duration-200',
+                detectedPlatform && detectedPlatform !== 'unknown'
+                  ? 'text-primary'
+                  : 'text-muted-foreground'
+              )}
+            >
+              {detectedPlatform && detectedPlatform !== 'unknown' ? (
+                <>
+                  <CheckCircle className="h-3.5 w-3.5" />
+                  <span>Detected: {PLATFORMS[detectedPlatform].name}</span>
+                </>
+              ) : (
+                <>
+                  <Globe className="h-3.5 w-3.5" />
+                  <span>Will attempt to import as direct video link</span>
+                </>
+              )}
             </div>
-          </div>
+          )}
+
+          {/* Supported platforms - only show when input is empty */}
+          {!newUrl.trim() && (
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <span>Supported:</span>
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1 hover:text-red-500 transition-colors cursor-default">
+                  <YouTubeIcon className="h-4 w-4" />
+                  YouTube
+                </span>
+                <span className="flex items-center gap-1 hover:text-cyan-500 transition-colors cursor-default">
+                  <VimeoIcon className="h-4 w-4" />
+                  Vimeo
+                </span>
+                <span className="flex items-center gap-1 hover:text-purple-500 transition-colors cursor-default">
+                  <LoomIcon className="h-4 w-4" />
+                  Loom
+                </span>
+                <span className="flex items-center gap-1 hover:text-blue-500 transition-colors cursor-default">
+                  <Link2 className="h-4 w-4" />
+                  Direct links
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* URL Queue */}
@@ -680,10 +723,50 @@ export function UrlVideoUpload({
 
         {/* Empty State */}
         {urls.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
-            <Globe className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="text-sm">Paste a video URL above to get started</p>
-            <p className="text-xs mt-1">You can add multiple URLs before importing</p>
+          <div className="relative overflow-hidden rounded-xl border border-dashed border-muted-foreground/20 bg-muted/30 p-8">
+            {/* Decorative background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5" />
+
+            <div className="relative text-center">
+              <div className="inline-flex p-4 rounded-full bg-gradient-to-br from-purple-500/10 to-blue-500/10 mb-4">
+                <Globe className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-base font-medium mb-1">Import videos from the web</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Paste a URL from YouTube, Vimeo, Loom, or any direct video link
+              </p>
+
+              {/* Quick tips */}
+              <div className="flex flex-col gap-2 text-xs text-muted-foreground max-w-sm mx-auto">
+                <div className="flex items-center gap-2 justify-center">
+                  <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">Ctrl+V</kbd>
+                  <span>to paste from clipboard</span>
+                </div>
+                <div className="flex items-center gap-2 justify-center">
+                  <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">Enter</kbd>
+                  <span>to add URL to queue</span>
+                </div>
+              </div>
+
+              {/* Example URLs */}
+              <div className="mt-6 pt-4 border-t border-muted-foreground/10">
+                <p className="text-xs text-muted-foreground mb-3">Example URLs:</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Badge variant="secondary" className="text-[10px] font-normal gap-1">
+                    <YouTubeIcon className="h-3 w-3" />
+                    youtube.com/watch?v=...
+                  </Badge>
+                  <Badge variant="secondary" className="text-[10px] font-normal gap-1">
+                    <VimeoIcon className="h-3 w-3" />
+                    vimeo.com/123456
+                  </Badge>
+                  <Badge variant="secondary" className="text-[10px] font-normal gap-1">
+                    <LoomIcon className="h-3 w-3" />
+                    loom.com/share/...
+                  </Badge>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
