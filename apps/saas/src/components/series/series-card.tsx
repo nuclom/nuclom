@@ -1,7 +1,7 @@
 'use client';
 
 import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from '@nuclom/lib/image-utils';
-import type { SeriesProgressWithDetails, SeriesWithVideoCount } from '@nuclom/lib/types';
+import type { CollectionProgressWithDetails, CollectionWithVideoCount } from '@nuclom/lib/types';
 import { Link } from '@vercel/microfrontends/next/client';
 import { MoreHorizontal, Pencil, Play, Trash2 } from 'lucide-react';
 import Image from 'next/image';
@@ -18,9 +18,9 @@ import {
 import { Progress } from '@/components/ui/progress';
 
 interface SeriesCardProps {
-  series: SeriesWithVideoCount & { progress?: SeriesProgressWithDetails };
+  series: CollectionWithVideoCount & { progress?: CollectionProgressWithDetails };
   organization: string;
-  onEdit?: (series: SeriesWithVideoCount) => void;
+  onEdit?: (series: CollectionWithVideoCount) => void;
   onDelete?: (seriesId: string) => void;
   /** Mark as priority for above-the-fold images */
   priority?: boolean;
@@ -51,7 +51,7 @@ export function SeriesCard({ series, organization, onEdit, onDelete, priority = 
               src={series.thumbnailUrl || '/placeholder.svg'}
               alt={series.name}
               fill
-              sizes={IMAGE_SIZES.seriesCard}
+              sizes={IMAGE_SIZES.collectionCard}
               priority={priority}
               placeholder="blur"
               blurDataURL={VIDEO_THUMBNAIL_BLUR_DATA_URL}

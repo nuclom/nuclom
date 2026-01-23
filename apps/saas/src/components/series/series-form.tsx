@@ -1,6 +1,6 @@
 'use client';
 
-import type { SeriesWithVideoCount } from '@nuclom/lib/types';
+import type { CollectionWithVideoCount } from '@nuclom/lib/types';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ interface SeriesFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   organizationId: string;
-  series?: SeriesWithVideoCount | null;
+  series?: CollectionWithVideoCount | null;
   onSuccess?: () => void;
 }
 
@@ -43,7 +43,7 @@ export function SeriesForm({ open, onOpenChange, organizationId, series, onSucce
     setError(null);
 
     try {
-      const url = isEditing ? `/api/series/${series.id}` : '/api/series';
+      const url = isEditing ? `/api/collections/${series.id}` : '/api/collections';
       const method = isEditing ? 'PATCH' : 'POST';
 
       const response = await fetch(url, {

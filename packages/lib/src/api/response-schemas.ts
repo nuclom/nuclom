@@ -100,25 +100,26 @@ export const VideoDeleteResponse = Schema.Struct({
 });
 
 // =============================================================================
-// Series Schemas
+// Collection Schemas
 // =============================================================================
 
-export const Series = Schema.Struct({
+export const Collection = Schema.Struct({
   id: Schema.UUID,
   name: Schema.String,
   description: Schema.NullOr(Schema.String),
   thumbnailUrl: Schema.NullOr(Schema.String),
   organizationId: Schema.UUID,
+  type: Schema.Literal('folder', 'playlist'),
   isPublic: Schema.Boolean,
   videoCount: Schema.Number,
   createdAt: Schema.String,
   updatedAt: Schema.String,
 });
 
-export const SeriesWithVideos = Series.pipe(Schema.extend(Schema.Struct({ videos: Schema.Array(Video) })));
+export const CollectionWithVideos = Collection.pipe(Schema.extend(Schema.Struct({ videos: Schema.Array(Video) })));
 
-export const PaginatedSeries = Schema.Struct({
-  data: Schema.Array(Series),
+export const PaginatedCollections = Schema.Struct({
+  data: Schema.Array(Collection),
   pagination: PaginationMeta,
 });
 
@@ -229,7 +230,7 @@ export const BillingPlanList = Schema.Array(BillingPlan);
 // =============================================================================
 
 export const SearchResult = Schema.Struct({
-  type: Schema.Literal('video', 'series', 'channel'),
+  type: Schema.Literal('video', 'collection'),
   id: Schema.UUID,
   title: Schema.String,
   description: Schema.NullOr(Schema.String),

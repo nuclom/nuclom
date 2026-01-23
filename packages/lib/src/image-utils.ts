@@ -32,9 +32,9 @@ export const IMAGE_SIZES = {
   videoCard: '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw',
 
   /**
-   * Series card thumbnails in grid layouts
+   * Collection card thumbnails in grid layouts
    */
-  seriesCard: '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
+  collectionCard: '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
 
   /**
    * Small thumbnails in lists (e.g., video picker, sortable list)
@@ -87,9 +87,9 @@ export const getVideoThumbnailProps = (
 });
 
 /**
- * Default props for series thumbnails
+ * Default props for collection thumbnails
  */
-export const getSeriesThumbnailProps = (
+export const getCollectionThumbnailProps = (
   src: string | null | undefined,
   alt: string,
   options?: {
@@ -100,7 +100,7 @@ export const getSeriesThumbnailProps = (
   src: src || '/placeholder.svg',
   alt,
   fill: true,
-  sizes: options?.sizes || IMAGE_SIZES.seriesCard,
+  sizes: options?.sizes || IMAGE_SIZES.collectionCard,
   priority: options?.priority || false,
   placeholder: 'blur' as const,
   blurDataURL: VIDEO_THUMBNAIL_BLUR_DATA_URL,
