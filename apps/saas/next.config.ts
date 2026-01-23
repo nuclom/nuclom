@@ -20,6 +20,10 @@ const nextConfig: NextConfig = {
   // Optimize barrel file imports for better bundle size and faster builds
   experimental: {
     optimizePackageImports: [
+      // Internal packages with large barrel exports (CRITICAL for build performance)
+      '@nuclom/lib',
+      '@nuclom/ui',
+      '@nuclom/auth',
       // Icons
       'lucide-react',
       '@radix-ui/react-icons',
@@ -44,8 +48,10 @@ const nextConfig: NextConfig = {
       // Effect ecosystem
       'effect',
       '@effect/platform',
+      '@effect/platform-node',
       '@effect/sql',
       '@effect/sql-drizzle',
+      '@effect/sql-pg',
       // Utilities
       'date-fns',
       'lodash',
@@ -57,6 +63,11 @@ const nextConfig: NextConfig = {
       'swr',
       'posthog-js',
       'ai',
+      // SDK clients that may have barrel exports
+      '@aws-sdk/client-s3',
+      '@aws-sdk/lib-storage',
+      'drizzle-orm',
+      'stripe',
     ],
   },
 
