@@ -207,16 +207,11 @@ export function handleEffectExitWithOptions<T>(
  * Generate presigned thumbnail URL from stored key.
  *
  * This helper converts stored R2 keys to presigned download URLs.
- * It also handles legacy full R2 URLs for backward compatibility with
- * older database records that stored full URLs instead of keys.
- *
- * New records should always store just the key (e.g., "org-id/thumbnails/file.jpg")
- * and NOT full URLs.
  *
  * @param storage - The storage service instance
- * @param thumbnailKey - The stored thumbnail key (or legacy full URL)
+ * @param thumbnailKey - The stored thumbnail key
  * @param expiresIn - Optional expiration time in seconds (default: 3600 = 1 hour)
- * @returns Effect that resolves to presigned URL or null if conversion fails
+ * @returns Effect that resolves to presigned URL or null if key is missing
  *
  * @example
  * const storage = yield* Storage;
@@ -229,32 +224,20 @@ export function generatePresignedThumbnailUrl(
 ): Effect.Effect<string | null, never, never> {
   if (!thumbnailKey) return Effect.succeed(null);
 
-  return Effect.gen(function* () {
-    // Handle legacy full URLs for backward compatibility
-    const key = thumbnailKey.includes('.r2.cloudflarestorage.com/')
-      ? storage.extractKeyFromUrl(thumbnailKey)
-      : thumbnailKey;
-
-    if (!key) return null;
-
-    return yield* storage.generatePresignedDownloadUrl(key, expiresIn);
-  }).pipe(Effect.catchAll(() => Effect.succeed(null)));
+  return storage
+    .generatePresignedDownloadUrl(thumbnailKey, expiresIn)
+    .pipe(Effect.catchAll(() => Effect.succeed(null)));
 }
 
 /**
  * Generate presigned video URL from stored key.
  *
  * This helper converts stored R2 keys to presigned download URLs.
- * It also handles legacy full R2 URLs for backward compatibility with
- * older database records that stored full URLs instead of keys.
- *
- * New records should always store just the key (e.g., "org-id/videos/file.mp4")
- * and NOT full URLs.
  *
  * @param storage - The storage service instance
- * @param videoKey - The stored video key (or legacy full URL)
+ * @param videoKey - The stored video key
  * @param expiresIn - Optional expiration time in seconds (default: 3600 = 1 hour)
- * @returns Effect that resolves to presigned URL or null if conversion fails
+ * @returns Effect that resolves to presigned URL or null if key is missing
  */
 export function generatePresignedVideoUrl(
   storage: Context.Tag.Service<typeof Storage>,
@@ -263,14 +246,7 @@ export function generatePresignedVideoUrl(
 ): Effect.Effect<string | null, never, never> {
   if (!videoKey) return Effect.succeed(null);
 
-  return Effect.gen(function* () {
-    // Handle legacy full URLs for backward compatibility
-    const key = videoKey.includes('.r2.cloudflarestorage.com/') ? storage.extractKeyFromUrl(videoKey) : videoKey;
-
-    if (!key) return null;
-
-    return yield* storage.generatePresignedDownloadUrl(key, expiresIn);
-  }).pipe(Effect.catchAll(() => Effect.succeed(null)));
+  return storage.generatePresignedDownloadUrl(videoKey, expiresIn).pipe(Effect.catchAll(() => Effect.succeed(null)));
 }
 
 // =============================================================================

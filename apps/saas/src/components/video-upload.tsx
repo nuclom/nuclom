@@ -102,8 +102,7 @@ function UploadStepIndicator({ currentStep, hasFile }: { currentStep: UploadStep
 interface VideoUploadProps {
   organizationId: string;
   authorId: string;
-  channelId?: string;
-  seriesId?: string;
+  collectionId?: string;
   /** When provided, redirects to `${redirectPath}/${videoId}` after successful upload */
   redirectPath?: string;
   onUploadComplete?: (result: { videoId: string; videoUrl: string; thumbnailUrl: string; duration: string }) => void;
@@ -120,8 +119,7 @@ interface UploadState {
 export function VideoUpload({
   organizationId,
   authorId,
-  channelId,
-  seriesId,
+  collectionId,
   redirectPath,
   onUploadComplete,
   onCancel,
@@ -338,8 +336,7 @@ export function VideoUpload({
           description: description || undefined,
           organizationId,
           authorId,
-          channelId: channelId || undefined,
-          collectionId: seriesId || undefined,
+          collectionId: collectionId || undefined,
           skipAIProcessing: false,
         }),
       });

@@ -24,6 +24,22 @@ import type {
 } from './types';
 
 // =============================================================================
+// Symbol Extraction Regex Patterns
+// =============================================================================
+
+/** Matches function declarations: function foo() or async function foo() */
+const FUNCTION_DECL_REGEX = /(?:export\s+)?(?:async\s+)?function\s+(\w+)/g;
+
+/** Matches arrow functions: const foo = () => or const foo = async () => */
+const ARROW_FUNCTION_REGEX = /(?:export\s+)?(?:const|let)\s+(\w+)\s*=\s*(?:async\s*)?\(/g;
+
+/** Matches class declarations: class Foo or export class Foo */
+const CLASS_DECL_REGEX = /(?:export\s+)?class\s+(\w+)/g;
+
+/** Matches React.memo, forwardRef components: const Foo = React.memo(() => ...) */
+const REACT_WRAPPER_REGEX = /(?:export\s+)?(?:const|let)\s+([A-Z]\w+)\s*=\s*(?:React\.)?(?:memo|forwardRef)/g;
+
+// =============================================================================
 // Text Extraction Helpers
 // =============================================================================
 
@@ -120,9 +136,8 @@ export function extractSymbolsFromPatch(
 
   const content = addedLines.join('\n');
 
-  // Function declarations: function foo() or async function foo()
-  const functionDeclRegex = /(?:export\s+)?(?:async\s+)?function\s+(\w+)/g;
-  for (const match of content.matchAll(functionDeclRegex)) {
+  // Function declarations
+  for (const match of content.matchAll(FUNCTION_DECL_REGEX)) {
     const name = match[1];
     // Check if it's a React component (starts with uppercase)
     if (name[0] === name[0].toUpperCase()) {
@@ -132,9 +147,8 @@ export function extractSymbolsFromPatch(
     }
   }
 
-  // Arrow functions: const foo = () => or const foo = async () =>
-  const arrowFunctionRegex = /(?:export\s+)?(?:const|let)\s+(\w+)\s*=\s*(?:async\s*)?\(/g;
-  for (const match of content.matchAll(arrowFunctionRegex)) {
+  // Arrow functions
+  for (const match of content.matchAll(ARROW_FUNCTION_REGEX)) {
     const name = match[1];
     // Check if it's a React component (starts with uppercase)
     if (name[0] === name[0].toUpperCase()) {
@@ -145,14 +159,12 @@ export function extractSymbolsFromPatch(
   }
 
   // Class declarations
-  const classRegex = /(?:export\s+)?class\s+(\w+)/g;
-  for (const match of content.matchAll(classRegex)) {
+  for (const match of content.matchAll(CLASS_DECL_REGEX)) {
     classes.add(match[1]);
   }
 
-  // React.memo, forwardRef components: const Foo = React.memo(() => ...)
-  const reactWrapperRegex = /(?:export\s+)?(?:const|let)\s+([A-Z]\w+)\s*=\s*(?:React\.)?(?:memo|forwardRef)/g;
-  for (const match of content.matchAll(reactWrapperRegex)) {
+  // React.memo, forwardRef components
+  for (const match of content.matchAll(REACT_WRAPPER_REGEX)) {
     components.add(match[1]);
   }
 
@@ -227,26 +239,22 @@ function extractSymbolsFromLines(lines: string[], language: string): Set<string>
   const content = lines.join('\n');
 
   // Function declarations
-  const functionDeclRegex = /(?:export\s+)?(?:async\s+)?function\s+(\w+)/g;
-  for (const match of content.matchAll(functionDeclRegex)) {
+  for (const match of content.matchAll(FUNCTION_DECL_REGEX)) {
     symbols.add(match[1]);
   }
 
   // Arrow functions
-  const arrowFunctionRegex = /(?:export\s+)?(?:const|let)\s+(\w+)\s*=\s*(?:async\s*)?\(/g;
-  for (const match of content.matchAll(arrowFunctionRegex)) {
+  for (const match of content.matchAll(ARROW_FUNCTION_REGEX)) {
     symbols.add(match[1]);
   }
 
   // Class declarations
-  const classRegex = /(?:export\s+)?class\s+(\w+)/g;
-  for (const match of content.matchAll(classRegex)) {
+  for (const match of content.matchAll(CLASS_DECL_REGEX)) {
     symbols.add(match[1]);
   }
 
   // React.memo, forwardRef components
-  const reactWrapperRegex = /(?:export\s+)?(?:const|let)\s+([A-Z]\w+)\s*=\s*(?:React\.)?(?:memo|forwardRef)/g;
-  for (const match of content.matchAll(reactWrapperRegex)) {
+  for (const match of content.matchAll(REACT_WRAPPER_REGEX)) {
     symbols.add(match[1]);
   }
 

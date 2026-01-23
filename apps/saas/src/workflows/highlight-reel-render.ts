@@ -215,7 +215,7 @@ async function downloadAndUploadVideo(
   videoUrl: string,
   organizationId: string,
   reelId: string,
-): Promise<{ storageKey: string; publicUrl: string }> {
+): Promise<{ storageKey: string }> {
   'use step';
 
   const { env } = await import('@nuclom/lib/env/server');
@@ -262,11 +262,9 @@ async function downloadAndUploadVideo(
     }),
   );
 
-  const publicUrl = `https://${bucketName}.${accountId}.r2.cloudflarestorage.com/${storageKey}`;
+  log.info({ storageKey }, 'Video uploaded to R2 storage');
 
-  log.info({ storageKey, publicUrl }, 'Video uploaded to R2 storage');
-
-  return { storageKey, publicUrl };
+  return { storageKey };
 }
 
 // =============================================================================

@@ -21,15 +21,6 @@ import type {
   VideoSearchInput,
 } from './video-repository.types';
 
-// Re-export types for backward compatibility
-export type {
-  CreateVideoInput,
-  SoftDeleteOptions,
-  UpdateVideoInput,
-  VideoRepositoryService,
-  VideoSearchInput,
-} from './video-repository.types';
-
 const log = createLogger('video-repository');
 
 // =============================================================================
