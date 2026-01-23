@@ -20,7 +20,7 @@
 
 import type { IntegrationProvider } from '@nuclom/lib/db/schema';
 import { FatalError } from 'workflow';
-import { processVideoWorkflow } from './video-processing';
+import { processVideoWorkflow } from './video-processing/workflow';
 import { createWorkflowLogger } from './workflow-logger';
 
 const logger = createWorkflowLogger('import-meeting');

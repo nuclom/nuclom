@@ -1,11 +1,11 @@
 import { Slack } from '@nuclom/lib/effect/services/slack';
+import { SlackIntegrationLayer } from '@nuclom/lib/integrations/layer-builders';
 import {
   errorRedirect,
-  SlackIntegrationLayer,
   saveIntegration,
   successRedirect,
   validateOAuthCallback,
-} from '@nuclom/lib/integrations';
+} from '@nuclom/lib/integrations/oauth-handler';
 import { logger } from '@nuclom/lib/logger';
 import { Effect } from 'effect';
 

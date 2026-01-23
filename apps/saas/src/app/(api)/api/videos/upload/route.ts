@@ -5,16 +5,13 @@ import { trackVideoUpload } from '@nuclom/lib/effect/services/billing-middleware
 import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';
 import { logger } from '@nuclom/lib/logger';
 import type { ApiResponse } from '@nuclom/lib/types';
-import {
-  sanitizeDescription,
-  sanitizeTitle,
-  VideoUploadSchema,
-  validateFormData,
-  validateVideoFile,
-} from '@nuclom/lib/validation';
+import { validateFormData } from '@nuclom/lib/validation';
+import { validateVideoFile } from '@nuclom/lib/validation/file-validation';
+import { sanitizeDescription, sanitizeTitle } from '@nuclom/lib/validation/sanitize';
+import { VideoUploadSchema } from '@nuclom/lib/validation/schemas';
 import { Cause, Effect, Option } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
-import { processVideoWorkflow } from '@/workflows/video-processing';
+import { processVideoWorkflow } from '@/workflows/video-processing/workflow';
 
 // =============================================================================
 // Types

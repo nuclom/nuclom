@@ -1,11 +1,11 @@
 import { MicrosoftTeams } from '@nuclom/lib/effect/services/microsoft-teams';
+import { TeamsIntegrationLayer } from '@nuclom/lib/integrations/layer-builders';
 import {
   errorRedirect,
   saveIntegration,
   successRedirect,
-  TeamsIntegrationLayer,
   validateOAuthCallback,
-} from '@nuclom/lib/integrations';
+} from '@nuclom/lib/integrations/oauth-handler';
 import { logger } from '@nuclom/lib/logger';
 import { Effect } from 'effect';
 

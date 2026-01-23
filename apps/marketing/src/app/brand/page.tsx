@@ -1,13 +1,13 @@
 import { brand } from '@nuclom/lib/brand';
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
 import { Link } from '@vercel/microfrontends/next/client';
 import { ArrowRight, Check, X } from 'lucide-react';
 import type { Metadata } from 'next';
 import { MarketingFooter } from '@/components/marketing-footer';
 import { MarketingHeader } from '@/components/marketing-header';
 import { NuclomLogo } from '@/components/nuclom-logo';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const metadata: Metadata = {
   title: 'Brand Guidelines',

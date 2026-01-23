@@ -114,9 +114,3 @@ export function useVideo(id: string | null): UseApiState<VideoWithDetails> {
 export function useOrganizations(userId?: string): UseApiState<unknown[]> {
   return useApiQuery(() => organizationApiEffect.getOrganizations(userId), [userId]);
 }
-
-// =============================================================================
-// Re-export Effect-based hooks for more advanced usage
-// =============================================================================
-
-export { useEffectMutation, useEffectQuery, useErrorMessage } from './use-effect';

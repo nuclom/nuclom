@@ -1,11 +1,11 @@
 'use client';
 
+import { Badge } from '@nuclom/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
 import { Activity, CheckCircle2, Clock, Database, HardDrive, Server, Sparkles, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { MarketingFooter } from '@/components/marketing-footer';
 import { MarketingHeader } from '@/components/marketing-header';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 interface ServiceStatus {
