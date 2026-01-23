@@ -149,7 +149,8 @@ export function createMockStorageLayer(mockStorage?: MockStorageService) {
 // =============================================================================
 
 import { DatabaseError, DeleteError, NotFoundError } from '@nuclom/lib/effect/errors';
-import { VideoRepository, type VideoRepositoryService } from '@nuclom/lib/effect/services/video-repository';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
+import type { VideoRepositoryService } from '@nuclom/lib/effect/services/video-repository.types';
 
 export interface MockVideoRepositoryService {
   getVideos: ReturnType<typeof vi.fn>;

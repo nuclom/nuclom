@@ -25,8 +25,8 @@ import { CollectionRepository } from './services/collection-repository';
 import { OrganizationRepository } from './services/organization-repository';
 import { Storage } from './services/storage';
 import { type VideoProgressData, VideoProgressRepository } from './services/video-progress-repository';
-import type { CreateVideoInput, UpdateVideoInput } from './services/video-repository';
 import { VideoRepository } from './services/video-repository';
+import type { CreateVideoInput, UpdateVideoInput } from './services/video-repository.types';
 
 // =============================================================================
 // Server Effect Runner

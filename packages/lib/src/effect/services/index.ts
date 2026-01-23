@@ -764,7 +764,6 @@ export {
   VideoProgressRepository,
   VideoProgressRepositoryLive,
 } from './video-progress-repository';
-export type { CreateVideoInput, UpdateVideoInput, VideoRepositoryService } from './video-repository';
 // Video Repository
 export {
   createVideo,
@@ -776,6 +775,7 @@ export {
   VideoRepository,
   VideoRepositoryLive,
 } from './video-repository';
+export type { CreateVideoInput, UpdateVideoInput, VideoRepositoryService } from './video-repository.types';
 // Video Share Links Repository
 export type {
   VideoShareLinkStatus,

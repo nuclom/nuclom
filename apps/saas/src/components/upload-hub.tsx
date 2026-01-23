@@ -29,7 +29,6 @@ interface UploadHubProps {
   organizationId: string;
   organizationSlug: string;
   authorId: string;
-  channelId?: string;
   collectionId?: string;
   redirectPath?: string;
 }
@@ -49,14 +48,7 @@ interface GoogleDriveFile {
   size: number;
 }
 
-export function UploadHub({
-  organizationId,
-  organizationSlug,
-  authorId,
-  channelId,
-  collectionId,
-  redirectPath,
-}: UploadHubProps) {
+export function UploadHub({ organizationId, organizationSlug, authorId, collectionId, redirectPath }: UploadHubProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [currentView, setCurrentView] = useState<UploadView>('home');
@@ -237,7 +229,6 @@ export function UploadHub({
         <BulkVideoUpload
           organizationId={organizationId}
           authorId={authorId}
-          channelId={channelId}
           collectionId={collectionId}
           onUploadComplete={handleUploadComplete}
           onCancel={() => setCurrentView('home')}
@@ -256,7 +247,6 @@ export function UploadHub({
         <UrlVideoUpload
           organizationId={organizationId}
           authorId={authorId}
-          channelId={channelId}
           collectionId={collectionId}
           onUploadComplete={handleUploadComplete}
           onCancel={() => setCurrentView('home')}
