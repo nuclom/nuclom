@@ -29,7 +29,6 @@ export function useVideoControls({
   isLooping,
   currentTime,
   setCurrentTime,
-  setPlaying: _setPlaying,
   setMuted,
   setVolume,
   setPlaybackRate,
@@ -42,6 +41,15 @@ export function useVideoControls({
   const lastClickRef = useRef<number>(0);
   const SKIP_SECONDS = 10;
 
+  const handlePlayError = useCallback(
+    (err: unknown) => {
+      logger.error('Failed to play video', err);
+      setErrorMessage('Failed to play video');
+      setVideoState('error');
+    },
+    [setErrorMessage, setVideoState],
+  );
+
   const togglePlay = useCallback(() => {
     const video = refs.video.current;
     if (!video) return;
@@ -49,24 +57,16 @@ export function useVideoControls({
     if (playing) {
       video.pause();
     } else {
-      video.play().catch((err) => {
-        logger.error('Failed to play video', err);
-        setErrorMessage('Failed to play video');
-        setVideoState('error');
-      });
+      video.play().catch(handlePlayError);
     }
-  }, [playing, refs.video, setErrorMessage, setVideoState]);
+  }, [playing, refs.video, handlePlayError]);
 
   const play = useCallback(() => {
     const video = refs.video.current;
     if (!video || playing) return;
 
-    video.play().catch((err) => {
-      logger.error('Failed to play video', err);
-      setErrorMessage('Failed to play video');
-      setVideoState('error');
-    });
-  }, [playing, refs.video, setErrorMessage, setVideoState]);
+    video.play().catch(handlePlayError);
+  }, [playing, refs.video, handlePlayError]);
 
   const seek = useCallback(
     (time: number) => {

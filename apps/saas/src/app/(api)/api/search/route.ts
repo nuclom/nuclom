@@ -1,10 +1,13 @@
-import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
 import type { SearchFilters } from '@nuclom/lib/db/schema';
 import { MissingFieldError, SearchRepository } from '@nuclom/lib/effect';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { createLogger } from '@nuclom/lib/logger';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 import { connection } from 'next/server';
+
+const logger = createLogger('api:search');
 
 // =============================================================================
 // GET /api/search - Search videos with full-text search
@@ -69,7 +72,7 @@ export async function GET(request: NextRequest) {
       limit,
     });
 
-    // Save search to history if query is not empty
+    // Save search to history if query is not empty (non-blocking, log errors)
     if (query.trim()) {
       yield* searchRepo
         .saveSearchHistory({
@@ -79,13 +82,17 @@ export async function GET(request: NextRequest) {
           filters: Object.keys(filters).length > 0 ? filters : undefined,
           resultsCount: results.total,
         })
-        .pipe(Effect.catchAll(() => Effect.succeed(null))); // Ignore history save errors
+        .pipe(
+          Effect.catchAll((err) => {
+            logger.warn('Failed to save search history', { error: err, userId: user.id });
+            return Effect.succeed(null);
+          }),
+        );
     }
 
     return results;
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit);
 }

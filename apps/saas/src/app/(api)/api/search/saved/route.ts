@@ -1,4 +1,4 @@
-import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
 import { MissingFieldError, SearchRepository } from '@nuclom/lib/effect';
 import { Auth } from '@nuclom/lib/effect/services/auth';
 import { validateRequestBody } from '@nuclom/lib/validation';
@@ -33,8 +33,7 @@ export async function GET(request: NextRequest) {
     return yield* searchRepo.getSavedSearches(user.id, organizationId);
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit);
 }
 
@@ -48,7 +47,7 @@ export async function POST(request: NextRequest) {
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
-    // Parse request body
+    // Parse request body with required fields validated by schema
     const SearchFiltersSchema = Schema.Struct({
       types: Schema.optional(Schema.Array(Schema.Literal('video', 'collections'))),
       authorId: Schema.optional(Schema.String),
@@ -64,29 +63,13 @@ export async function POST(request: NextRequest) {
     });
 
     const SavedSearchBodySchema = Schema.Struct({
-      name: Schema.optional(Schema.String),
-      query: Schema.optional(Schema.String),
-      organizationId: Schema.optional(Schema.String),
+      name: Schema.String,
+      query: Schema.String,
+      organizationId: Schema.String,
       filters: Schema.optional(SearchFiltersSchema),
     });
 
-    const body = yield* validateRequestBody(SavedSearchBodySchema, request);
-    const { name, query, organizationId, filters } = body;
-
-    // Validate required fields
-    if (!name) {
-      return yield* Effect.fail(new MissingFieldError({ field: 'name', message: 'Name is required' }));
-    }
-
-    if (!query) {
-      return yield* Effect.fail(new MissingFieldError({ field: 'query', message: 'Query is required' }));
-    }
-
-    if (!organizationId) {
-      return yield* Effect.fail(
-        new MissingFieldError({ field: 'organizationId', message: 'Organization ID is required' }),
-      );
-    }
+    const { name, query, organizationId, filters } = yield* validateRequestBody(SavedSearchBodySchema, request);
 
     // Create saved search
     const searchRepo = yield* SearchRepository;
@@ -99,7 +82,6 @@ export async function POST(request: NextRequest) {
     });
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit);
 }
