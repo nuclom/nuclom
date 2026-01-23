@@ -46,7 +46,6 @@ export interface SubscriptionAccessResult {
 const FULL_ACCESS_STATUSES = ['active', 'trialing'];
 const LIMITED_ACCESS_STATUSES = ['past_due']; // Can still use, but with warnings
 const READ_ONLY_STATUSES = ['unpaid']; // Can view but not create/modify
-const _NO_ACCESS_STATUSES = ['canceled', 'incomplete_expired', 'incomplete'];
 
 // =============================================================================
 // Middleware Functions

@@ -128,7 +128,6 @@ const SCORING_WEIGHTS = {
 
 const makeDiscoveryService = Effect.gen(function* () {
   const { db } = yield* Database;
-  const _embedding = yield* Embedding;
 
   /**
    * Get user's recent activity to understand preferences
