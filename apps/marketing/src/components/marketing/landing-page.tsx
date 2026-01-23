@@ -57,7 +57,7 @@ export function LandingPage() {
         </div>
 
         {/* Gradient overlays for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40 z-10" />
+        <div className="absolute inset-0 bg-linear-to-t from-background via-background/80 to-background/40 z-10" />
 
         {/* Content */}
         <div className="relative z-20 w-full max-w-5xl mx-auto text-center">
@@ -78,7 +78,7 @@ export function LandingPage() {
 
           <FadeInSection delay={0.2}>
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-              Nuclom connects Slack, Notion, GitHub, and meetings into one searchable hub. AI surfaces what matters.
+              Nuclom connects Slack, Notion, GitHub, and Zoom into one searchable hub. AI surfaces what matters.
             </p>
           </FadeInSection>
 
@@ -89,18 +89,7 @@ export function LandingPage() {
                 asChild
                 className="px-8 py-6 text-lg glow-primary hover-glow transition-all duration-300"
               >
-                <Link href="/register">
-                  Start free
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                asChild
-                className="px-8 py-6 text-lg glass-subtle hover:bg-white/5 transition-all"
-              >
-                <Link href="/docs">See how it works</Link>
+                <Link href="/register">Start free</Link>
               </Button>
             </div>
           </FadeInSection>
@@ -124,13 +113,6 @@ export function LandingPage() {
               ))}
             </div>
           </FadeInSection>
-        </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
-          <div className="w-6 h-10 rounded-full border-2 border-muted-foreground/30 flex justify-center pt-2">
-            <div className="w-1 h-2 bg-muted-foreground/50 rounded-full animate-bounce" />
-          </div>
         </div>
       </section>
 
@@ -255,7 +237,7 @@ export function LandingPage() {
               <div className="relative">
                 <h2 className="text-3xl sm:text-4xl font-bold mb-4">Start with 14 days free</h2>
                 <p className="text-muted-foreground text-lg mb-8 max-w-lg mx-auto">
-                  Plans from $19/user/month. No credit card required to start.
+                  Plans from $29/user/month. No credit card required to start.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
