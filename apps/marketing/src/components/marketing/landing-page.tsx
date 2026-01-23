@@ -21,9 +21,9 @@ const KnowledgeNetwork = lazy(() =>
 );
 
 const integrations = [
-  { icon: MessageSquare, name: 'Slack', color: 'text-pink-400', subtitle: null },
-  { icon: FileText, name: 'Notion', color: 'text-amber-400', subtitle: null },
-  { icon: Github, name: 'GitHub', color: 'text-violet-400', subtitle: null },
+  { icon: MessageSquare, name: 'Messaging', color: 'text-pink-400', subtitle: 'Slack, Discord' },
+  { icon: FileText, name: 'Documents', color: 'text-amber-400', subtitle: 'Notion, Confluence' },
+  { icon: Github, name: 'Code', color: 'text-violet-400', subtitle: 'GitHub, GitLab' },
   { icon: Video, name: 'Meetings', color: 'text-cyan-400', subtitle: 'Zoom, Meet, Teams' },
 ];
 
