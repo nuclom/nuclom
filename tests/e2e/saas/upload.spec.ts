@@ -8,8 +8,8 @@ test.describe('Video Upload Page', () => {
       await page.goto(`/org/${testOrg}/upload`);
       await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/upload`));
 
-      // Wait for page to load (the page uses Suspense which may show skeleton first)
-      await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+      // Wait for initial DOM content
+      await page.waitForLoadState('domcontentloaded');
 
       // The page uses Suspense so content may load after networkidle.
       // Use poll to wait for upload elements to appear.
@@ -41,13 +41,10 @@ test.describe('Video Upload Page', () => {
               .isVisible()
               .catch(() => false);
 
-            // Log debug info
-            console.log('Upload check:', { hasUploadHeading, hasDropzone, hasUploadText, hasSkeleton });
-
             // If we have upload elements OR no skeleton loading, we're done
             return hasUploadHeading || hasDropzone || hasUploadText || !hasSkeleton;
           },
-          { timeout: 10000, message: 'Upload page elements should be visible after loading' },
+          { timeout: 5000, message: 'Upload page elements should be visible after loading' },
         )
         .toBe(true);
     });
@@ -56,51 +53,23 @@ test.describe('Video Upload Page', () => {
       await page.goto(`/org/${testOrg}/upload`);
       await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/upload`));
 
-      // Wait for Suspense content to load
-      await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+      // Wait for initial DOM content
+      await page.waitForLoadState('domcontentloaded');
 
-      // The "Back to Videos" link may take a moment to appear due to Suspense
-      // Use poll to wait for it to become visible
-      await expect
-        .poll(
-          async () => {
-            // Try multiple selectors: the link role with text, or just the text
-            const hasBackLink = await page
-              .getByRole('link', { name: /back to videos/i })
-              .isVisible()
-              .catch(() => false);
-            const hasBackText = await page
-              .getByText(/back to videos/i)
-              .first()
-              .isVisible()
-              .catch(() => false);
-            const hasSkeleton = await page
-              .locator('.animate-pulse, [data-skeleton]')
-              .first()
-              .isVisible()
-              .catch(() => false);
-
-            // Log debug info
-            console.log('Back link check:', { hasBackLink, hasBackText, hasSkeleton });
-
-            // If we have the link OR no skeleton loading, we're done
-            return hasBackLink || hasBackText || !hasSkeleton;
-          },
-          { timeout: 10000, message: 'Back to Videos link should be visible' },
-        )
-        .toBe(true);
+      // Wait for the back link to appear
+      await expect(page.getByText(/back to videos/i).first()).toBeVisible({ timeout: 5000 });
     });
 
     test('should navigate back to organization page', async ({ authenticatedPage: page }) => {
       await page.goto(`/org/${testOrg}/upload`);
       await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/upload`));
 
-      // Wait for Suspense content to load
-      await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+      // Wait for initial DOM content
+      await page.waitForLoadState('domcontentloaded');
 
       // Wait for the back link to appear
       const backLink = page.getByText(/back to videos/i).first();
-      await expect(backLink).toBeVisible({ timeout: 15000 });
+      await expect(backLink).toBeVisible({ timeout: 5000 });
 
       await backLink.click();
       // The link goes to /org/{slug} which shows videos
@@ -111,34 +80,16 @@ test.describe('Video Upload Page', () => {
       await page.goto(`/org/${testOrg}/upload`);
       await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/upload`));
 
-      // Wait for Suspense content to load
-      await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+      // Wait for initial DOM content
+      await page.waitForLoadState('domcontentloaded');
 
-      // Look for drop zone (role="button") or upload-related text
-      // The upload hub component has a div with role="button" for the drop zone
-      await expect
-        .poll(
-          async () => {
-            const hasDropZone = await page
-              .locator("[role='button']")
-              .first()
-              .isVisible()
-              .catch(() => false);
-            const hasDragText = await page
-              .getByText(/drag and drop/i)
-              .first()
-              .isVisible()
-              .catch(() => false);
-            const hasChooseFiles = await page
-              .getByText(/choose files/i)
-              .first()
-              .isVisible()
-              .catch(() => false);
-            return hasDropZone || hasDragText || hasChooseFiles;
-          },
-          { timeout: 15000, message: 'Drag and drop upload area should be visible' },
-        )
-        .toBe(true);
+      // Look for drop zone or upload-related text
+      const dropZone = page.locator("[role='button']").first();
+      const dragText = page.getByText(/drag and drop/i).first();
+      const chooseFiles = page.getByText(/choose files/i).first();
+
+      // At least one upload element should be visible
+      await expect(dropZone.or(dragText).or(chooseFiles).first()).toBeVisible({ timeout: 5000 });
     });
   });
 

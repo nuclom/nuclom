@@ -8,7 +8,7 @@ test.describe('Video List', () => {
       await page.goto(`/org/${testOrg}`);
       await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`));
 
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Check if we have video content or empty state
       // Video sections show "Continue Watching", "New This Week", etc.

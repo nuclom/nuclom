@@ -35,9 +35,13 @@ concurrency:
 
 jobs:
   e2e-tests:
-    name: Playwright
+    name: Playwright (${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
 
     steps:
       - name: Set commit status to pending
@@ -90,7 +94,7 @@ jobs:
           echo "Triggered by SHA: ${{ github.event.inputs.triggered_by_sha || '(manual trigger)' }}"
 
       - name: Run Playwright tests
-        run: pnpm test
+        run: pnpm test --shard=${{ matrix.shard }}/3
         working-directory: tests/e2e
         env:
           SAAS_BASE_URL: ${{ github.event.inputs.saas_url }}
@@ -104,7 +108,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report-${{ github.run_id }}
+          name: playwright-report-${{ github.run_id }}-shard-${{ matrix.shard }}
           path: tests/e2e/playwright-report/
           retention-days: 14
 
@@ -112,7 +116,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results-${{ github.run_id }}
+          name: test-results-${{ github.run_id }}-shard-${{ matrix.shard }}
           path: tests/e2e/test-results/
           retention-days: 14
 

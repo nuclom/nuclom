@@ -8,41 +8,12 @@ test.describe('Organization Dashboard', () => {
       await page.goto(`/org/${testOrg}`);
       await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`));
 
-      // Wait for the page to load - either video sections or empty state
-      await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+      // Wait for initial DOM content
+      await page.waitForLoadState('domcontentloaded');
 
-      // Use polling to wait for dashboard content to appear (handles slow mobile rendering)
-      await expect
-        .poll(
-          async () => {
-            // Check if videos exist - look for video sections OR empty state
-            const hasVideos = await page
-              .getByText('Continue Watching')
-              .isVisible()
-              .catch(() => false);
-            // Empty state shows the DashboardHero with greeting and upload prompt
-            const hasEmptyState = await page
-              .getByText(/upload your first video|get started by uploading/i)
-              .first()
-              .isVisible()
-              .catch(() => false);
-            // Also check for the greeting pattern which indicates empty state
-            const hasGreeting = await page
-              .getByRole('heading', { name: /good (morning|afternoon|evening)/i })
-              .isVisible()
-              .catch(() => false);
-            // Check for any heading on the page (fallback)
-            const hasAnyHeading = await page
-              .getByRole('heading')
-              .first()
-              .isVisible()
-              .catch(() => false);
-
-            return hasVideos || hasEmptyState || hasGreeting || hasAnyHeading;
-          },
-          { timeout: 20000, message: 'Organization dashboard should display content' },
-        )
-        .toBe(true);
+      // Dashboard should show either videos or empty state with a heading
+      const heading = page.getByRole('heading').first();
+      await expect(heading).toBeVisible({ timeout: 5000 });
 
       // Check if videos exist for further assertions
       const hasVideos = await page
