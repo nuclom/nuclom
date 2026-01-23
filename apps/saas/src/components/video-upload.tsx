@@ -2,9 +2,9 @@
 
 import { logger } from '@nuclom/lib/client-logger';
 import { cn } from '@nuclom/lib/utils';
-import { AlertCircle, CheckCircle, Loader2, Upload, Video, X } from 'lucide-react';
+import { AlertCircle, CheckCircle, Keyboard, Loader2, Upload, Video, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { type ChangeEvent, type FormEvent, useCallback, useRef, useState } from 'react';
+import { type ChangeEvent, type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -134,7 +134,10 @@ export function VideoUpload({
     message: '',
   });
   const [dragActive, setDragActive] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const titleInputRef = useRef<HTMLInputElement | null>(null);
 
   // Determine current step for the indicator
   const getCurrentStep = (): UploadStep => {
@@ -156,6 +159,57 @@ export function VideoUpload({
       message: '',
     });
   }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger shortcuts when typing in inputs
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        // Allow Escape to blur from inputs
+        if (e.key === 'Escape') {
+          (e.target as HTMLElement).blur();
+        }
+        return;
+      }
+
+      // Ctrl/Cmd + U: Open file picker
+      if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
+        e.preventDefault();
+        if (uploadState.status !== 'uploading' && uploadState.status !== 'processing') {
+          fileInputRef.current?.click();
+        }
+      }
+
+      // Ctrl/Cmd + Enter: Start upload
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        if (file && title && uploadState.status === 'idle') {
+          const form = document.querySelector('form');
+          if (form) {
+            form.requestSubmit();
+          }
+        }
+      }
+
+      // Escape: Cancel upload or close
+      if (e.key === 'Escape') {
+        if (uploadState.status === 'uploading') {
+          handleCancelUpload();
+        } else if (onCancel) {
+          onCancel();
+        }
+      }
+
+      // ?: Show keyboard shortcuts
+      if (e.key === '?' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        setShowShortcuts((prev) => !prev);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [file, title, uploadState.status, onCancel, handleCancelUpload]);
 
   const handleFileSelect = useCallback(
     (selectedFile: File) => {
@@ -403,7 +457,7 @@ export function VideoUpload({
           onDrop={handleDrop}
           onClick={() => {
             if (uploadState.status !== 'uploading' && uploadState.status !== 'processing' && !file) {
-              document.getElementById('video-upload')?.click();
+              fileInputRef.current?.click();
             }
           }}
         >
@@ -434,11 +488,13 @@ export function VideoUpload({
                 <p className="text-sm text-muted-foreground">or click to select a file</p>
               </div>
               <input
+                ref={fileInputRef}
                 type="file"
                 accept="video/*"
                 onChange={handleFileChange}
                 className="hidden"
                 id="video-upload"
+                aria-label="Select video file to upload"
                 disabled={uploadState.status === 'uploading' || uploadState.status === 'processing'}
               />
               <Button
@@ -447,7 +503,7 @@ export function VideoUpload({
                 disabled={uploadState.status === 'uploading' || uploadState.status === 'processing'}
                 onClick={(e) => {
                   e.stopPropagation();
-                  document.getElementById('video-upload')?.click();
+                  fileInputRef.current?.click();
                 }}
               >
                 Select Video File
@@ -464,6 +520,7 @@ export function VideoUpload({
           <div className="space-y-2">
             <Label htmlFor="title">Title *</Label>
             <Input
+              ref={titleInputRef}
               id="title"
               type="text"
               value={title}
@@ -471,7 +528,11 @@ export function VideoUpload({
               placeholder="Enter video title"
               required
               disabled={uploadState.status === 'uploading' || uploadState.status === 'processing'}
+              aria-describedby="title-hint"
             />
+            <p id="title-hint" className="sr-only">
+              Required field. Press Tab to move to description.
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -553,6 +614,61 @@ export function VideoUpload({
               </Button>
             )}
           </div>
+
+          {/* Keyboard Shortcuts Toggle */}
+          <div className="flex justify-center pt-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-xs text-muted-foreground gap-1.5 h-7"
+              onClick={() => setShowShortcuts((prev) => !prev)}
+            >
+              <Keyboard className="h-3 w-3" />
+              Keyboard shortcuts
+              <kbd className="ml-1 px-1 py-0.5 bg-muted rounded text-[10px] font-mono">?</kbd>
+            </Button>
+          </div>
+
+          {/* Keyboard Shortcuts Panel */}
+          {showShortcuts && (
+            <div className="mt-2 p-4 rounded-lg bg-muted/50 border text-sm" role="dialog" aria-label="Keyboard shortcuts">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-medium flex items-center gap-2">
+                  <Keyboard className="h-4 w-4" />
+                  Keyboard Shortcuts
+                </h3>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => setShowShortcuts(false)}
+                  aria-label="Close shortcuts panel"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Open file picker</span>
+                  <kbd className="px-1.5 py-0.5 bg-background rounded border text-[10px] font-mono">Ctrl+U</kbd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Start upload</span>
+                  <kbd className="px-1.5 py-0.5 bg-background rounded border text-[10px] font-mono">Ctrl+Enter</kbd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Cancel / Close</span>
+                  <kbd className="px-1.5 py-0.5 bg-background rounded border text-[10px] font-mono">Esc</kbd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Show shortcuts</span>
+                  <kbd className="px-1.5 py-0.5 bg-background rounded border text-[10px] font-mono">?</kbd>
+                </div>
+              </div>
+            </div>
+          )}
         </form>
       </CardContent>
     </Card>
