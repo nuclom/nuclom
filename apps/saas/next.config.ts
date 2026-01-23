@@ -10,9 +10,8 @@ const nextConfig: NextConfig = {
   // Enable Partial Prerendering (PPR) via cache components
   cacheComponents: true,
 
-  // Skip during build - CI handles type checking and linting
+  // Skip during build - CI handles type checking
   typescript: { ignoreBuildErrors: true },
-  eslint: { ignoreDuringBuilds: true },
 
   // Memory optimization for Vercel builds
   // Increase timeout for static page generation (default 60s)
