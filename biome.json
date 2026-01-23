@@ -183,6 +183,36 @@
           }
         }
       }
+    },
+    {
+      "includes": [
+        "packages/lib/src/db/schema/index.ts",
+        "packages/lib/src/effect/index.ts",
+        "packages/lib/src/effect/services/index.ts",
+        "packages/lib/src/effect/services/content/index.ts",
+        "packages/lib/src/effect/services/content/github/index.ts",
+        "packages/lib/src/effect/services/content/slack/index.ts",
+        "packages/lib/src/effect/services/knowledge/index.ts",
+        "packages/lib/src/effect/services/search/index.ts",
+        "packages/lib/src/effect/services/slack-monitoring/index.ts",
+        "packages/auth/src/index.ts",
+        "packages/socials/src/index.ts",
+        "packages/socials/src/commands/index.ts",
+        "packages/socials/src/commands/twitter/index.ts",
+        "packages/socials/src/providers/twitter/index.ts",
+        "packages/socials/src/services/index.ts",
+        "packages/socials/src/storage/index.ts",
+        "packages/socials/src/sync/index.ts",
+        "packages/socials/src/types/index.ts",
+        "tests/e2e/shared/fixtures.ts"
+      ],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noBarrelFile": "off"
+          }
+        }
+      }
     }
   ]
 }
