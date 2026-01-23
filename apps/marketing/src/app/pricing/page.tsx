@@ -125,7 +125,7 @@ const pricingPlans = {
       { name: 'Unlimited content items', included: true },
       { name: '10,000 AI requests/mo', included: true },
       { name: '99.9% uptime SLA', included: true },
-      { name: '4-hour support response', included: true },
+      { name: '12-hour support response', included: true },
       { name: 'Quarterly business reviews', included: true },
       { name: 'Custom onboarding', included: true },
     ],
@@ -220,7 +220,7 @@ const featureComparison = [
     icon: Headphones,
     features: [
       { name: 'Email support', scale: true, growth: true, pro: true },
-      { name: 'Response SLA', scale: '48 hours', growth: '24 hours', pro: '4 hours' },
+      { name: 'Response SLA', scale: '48 hours', growth: '24 hours', pro: '12 hours' },
       { name: 'Priority support', scale: false, growth: true, pro: true },
       { name: 'Dedicated account manager', scale: false, growth: false, pro: true },
       { name: 'Custom onboarding', scale: false, growth: false, pro: true },
