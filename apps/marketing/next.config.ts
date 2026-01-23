@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   // Enable compression for API responses
   compress: true,
 
+  // Skip during build - CI handles type checking
+  typescript: { ignoreBuildErrors: true },
+
   // Optimize barrel file imports for better bundle size and faster builds
   experimental: {
     optimizePackageImports: ['lucide-react'],

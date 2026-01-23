@@ -13,9 +13,54 @@ const nextConfig: NextConfig = {
   // Skip during build - CI handles type checking
   typescript: { ignoreBuildErrors: true },
 
+  // Memory optimization for Vercel builds
+  // Increase timeout for static page generation (default 60s)
+  staticPageGenerationTimeout: 300,
+
   // Optimize barrel file imports for better bundle size and faster builds
   experimental: {
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'date-fns', 'lodash', 'recharts'],
+    optimizePackageImports: [
+      // Icons
+      'lucide-react',
+      '@radix-ui/react-icons',
+      // UI libraries
+      '@radix-ui/react-accordion',
+      '@radix-ui/react-alert-dialog',
+      '@radix-ui/react-avatar',
+      '@radix-ui/react-checkbox',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-hover-card',
+      '@radix-ui/react-label',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-scroll-area',
+      '@radix-ui/react-select',
+      '@radix-ui/react-separator',
+      '@radix-ui/react-slider',
+      '@radix-ui/react-switch',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-toast',
+      '@radix-ui/react-tooltip',
+      // Effect ecosystem
+      'effect',
+      '@effect/platform',
+      '@effect/sql',
+      '@effect/sql-drizzle',
+      // Utilities
+      'date-fns',
+      'lodash',
+      // Charts
+      'recharts',
+      // Other heavy packages
+      'react-day-picker',
+      'react-hook-form',
+      'swr',
+      'posthog-js',
+      'ai',
+    ],
+    // Reduce parallelism during build to prevent OOM on Vercel
+    workerThreads: false,
+    cpus: 2,
   },
 
   // Image optimization configuration
