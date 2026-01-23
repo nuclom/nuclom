@@ -43,7 +43,13 @@
             "paths": {
               "next/link": "Use @vercel/microfrontends/next/client Link for cross-zone navigation.",
               "framer-motion": "Use 'motion/react' instead. The 'motion' package is the modern replacement for framer-motion."
-            }
+            },
+            "patterns": [
+              {
+                "group": ["@radix-ui/*"],
+                "message": "Use the unified 'radix-ui' package instead. Example: import { Dialog } from 'radix-ui'"
+              }
+            ]
           }
         }
       },

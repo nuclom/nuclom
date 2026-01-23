@@ -21,6 +21,7 @@ tmp/
 
 # next.js
 .next/
+.swc/
 out/
 
 # production

@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
-import * as SeparatorPrimitive from '@radix-ui/react-separator';
+import { Separator as SeparatorPrimitive } from 'radix-ui';
 import * as React from 'react';
 
 const Separator = React.forwardRef<

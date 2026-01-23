@@ -1,8 +1,8 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
-import * as RadioGroupPrimitive from '@radix-ui/react-radio-group';
 import { Circle } from 'lucide-react';
+import { RadioGroup as RadioGroupPrimitive } from 'radix-ui';
 import * as React from 'react';
 
 const RadioGroup = React.forwardRef<
