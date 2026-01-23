@@ -15,7 +15,8 @@
         "src/**/*.integration.test.ts",
         "src/test/**",
         "src/components/ui/**",
-        "src/app/.well-known/workflow/**"
+        "src/app/.well-known/workflow/**",
+        "src/lib/i18n/**"
       ],
       "next": {
         "config": ["next.config.ts"]
