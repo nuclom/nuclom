@@ -17,13 +17,9 @@ on:
       # Build finished, awaiting promotion (preview deployments)
       - "vercel.deployment.ready"
 
-# Use SHA-based concurrency to handle races between SaaS and Marketing deployments:
-# - If SaaS deploys first and starts waiting, then Marketing deploys, the SaaS
-#   job gets cancelled and Marketing's job takes over (seeing both URLs ready)
-# - This prevents duplicate E2E triggers
-concurrency:
-  group: e2e-trigger-${{ github.event.client_payload.git.sha }}
-  cancel-in-progress: true
+# No concurrency limit - each deployment event runs independently.
+# Whichever deployment finishes second will see both URLs ready and trigger E2E.
+# E2E workflow has its own SHA-based concurrency to prevent duplicate test runs.
 
 jobs:
   trigger-e2e:
@@ -141,49 +137,20 @@ jobs:
             console.log(`  SaaS: ${saasUrl || 'not ready'}`);
             console.log(`  Marketing: ${marketingUrl || 'not ready'}`);
 
-            // Case 1: Both deployments ready - trigger immediately
+            // Both deployments ready - trigger E2E tests
             if (saasUrl && marketingUrl) {
               console.log('Both deployments ready, triggering E2E tests');
               await triggerE2E(saasUrl, marketingUrl);
               return;
             }
 
-            // Case 2: Only marketing ready - exit silently
-            // The SaaS deployment event will handle triggering when ready
-            if (marketingUrl && !saasUrl) {
+            // Only one deployment ready - wait for the other deployment's event
+            // The concurrency group ensures only one trigger job runs at a time per SHA,
+            // so whichever deployment finishes second will see both URLs and trigger E2E
+            if (saasUrl) {
+              console.log('SaaS ready, waiting for marketing deployment event...');
+            } else if (marketingUrl) {
               console.log('Marketing ready, waiting for SaaS deployment event...');
-              return;
-            }
-
-            // Case 3: Only SaaS ready - wait for marketing (with timeout)
-            if (saasUrl && !marketingUrl) {
-              console.log('SaaS ready. Waiting up to 10 minutes for marketing...');
-
-              const maxWaitMs = 10 * 60 * 1000; // 10 minutes
-              const checkIntervalMs = 30 * 1000; // 30 seconds
-              const startTime = Date.now();
-
-              while (Date.now() - startTime < maxWaitMs) {
-                // Sleep first to give marketing time to deploy
-                await new Promise(resolve => setTimeout(resolve, checkIntervalMs));
-
-                const updated = await checkDeployments();
-                if (updated.marketingUrl) {
-                  console.log('Marketing deployment detected!');
-                  await triggerE2E(updated.saasUrl || saasUrl, updated.marketingUrl);
-                  return;
-                }
-
-                const elapsed = Math.round((Date.now() - startTime) / 1000);
-                const remaining = Math.round((maxWaitMs - (Date.now() - startTime)) / 1000);
-                console.log(`Waiting for marketing... (${elapsed}s elapsed, ${remaining}s remaining)`);
-              }
-
-              // Timeout reached - fail the workflow
-              core.setFailed('Timeout waiting for marketing deployment. Both deployments are required.');
-            }
-
-            // Case 4: Neither ready - shouldn't happen but handle gracefully
-            if (!saasUrl && !marketingUrl) {
-              core.setFailed('Unexpected state: no deployments ready.');
+            } else {
+              console.log('No deployments ready yet.');
             }
