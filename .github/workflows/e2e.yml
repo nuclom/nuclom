@@ -11,8 +11,8 @@ on:
         required: true
         type: string
       marketing_url:
-        description: "Marketing deployment URL (optional - leave empty to skip marketing tests)"
-        required: false
+        description: "Marketing deployment URL (required)"
+        required: true
         type: string
       triggered_by_sha:
         description: "Commit SHA that triggered this run (set by e2e-trigger.yml)"

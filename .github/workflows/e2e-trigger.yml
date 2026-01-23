@@ -109,7 +109,7 @@ jobs:
               console.log(`Triggering E2E workflow`);
               console.log(`  Ref: ${ref}`);
               console.log(`  SaaS URL: ${saasUrl}`);
-              console.log(`  Marketing URL: ${marketingUrl || '(skipped)'}`);
+              console.log(`  Marketing URL: ${marketingUrl}`);
 
               await github.rest.actions.createWorkflowDispatch({
                 owner: context.repo.owner,
@@ -118,7 +118,7 @@ jobs:
                 ref: ref,
                 inputs: {
                   saas_url: saasUrl,
-                  marketing_url: marketingUrl || '',
+                  marketing_url: marketingUrl,
                   triggered_by_sha: sha
                 }
               });
@@ -156,11 +156,10 @@ jobs:
             }
 
             // Case 3: Only SaaS ready - wait for marketing (with timeout)
-            // Marketing might deploy shortly, or might not be deployed for this change
             if (saasUrl && !marketingUrl) {
-              console.log('SaaS ready. Waiting up to 5 minutes for marketing...');
+              console.log('SaaS ready. Waiting up to 10 minutes for marketing...');
 
-              const maxWaitMs = 5 * 60 * 1000; // 5 minutes
+              const maxWaitMs = 10 * 60 * 1000; // 10 minutes
               const checkIntervalMs = 30 * 1000; // 30 seconds
               const startTime = Date.now();
 
@@ -180,13 +179,11 @@ jobs:
                 console.log(`Waiting for marketing... (${elapsed}s elapsed, ${remaining}s remaining)`);
               }
 
-              // Timeout reached - proceed with just SaaS
-              // Marketing tests will be skipped (common for PRs that only touch SaaS)
-              console.log('Marketing wait timeout. Proceeding with SaaS only.');
-              await triggerE2E(saasUrl, '');
+              // Timeout reached - fail the workflow
+              core.setFailed('Timeout waiting for marketing deployment. Both deployments are required.');
             }
 
             // Case 4: Neither ready - shouldn't happen but handle gracefully
             if (!saasUrl && !marketingUrl) {
-              console.log('Unexpected state: no deployments ready. Exiting.');
+              core.setFailed('Unexpected state: no deployments ready.');
             }
