@@ -19,10 +19,15 @@ import { invoiceStatusEnum } from './enums';
 // =============================================================================
 
 export type PlanLimits = {
-  readonly storage: number; // bytes, -1 for unlimited
-  readonly videos: number; // count, -1 for unlimited
-  readonly members: number; // count, -1 for unlimited
+  readonly storage: number; // bytes per user, -1 for unlimited
+  readonly videos: number; // video uploads per month, -1 for unlimited
+  readonly members: number; // team members count, -1 for unlimited
   readonly bandwidth: number; // bytes per month, -1 for unlimited
+  readonly knowledgeSources: number; // number of connected sources, -1 for unlimited
+  readonly contentItems: number; // synced content items, -1 for unlimited
+  readonly transcriptionMinutes: number; // AI transcription minutes per month, -1 for unlimited
+  readonly aiRequests: number; // AI requests per month, -1 for unlimited
+  readonly maxFileSize: number; // max file size in bytes, -1 for unlimited
 };
 
 export type PlanFeatures = {
@@ -31,17 +36,24 @@ export type PlanFeatures = {
   readonly sso: boolean;
   readonly prioritySupport: boolean;
   readonly apiAccess: boolean;
+  readonly auditLogs: boolean;
+  readonly advancedAnalytics: boolean;
+  readonly dedicatedSupport: boolean;
+  readonly passwordProtectedLinks: boolean;
+  readonly expiringLinks: boolean;
 };
 
 /**
  * Overage rates for pay-as-you-go billing after included amounts.
  * Rates are in cents (USD) per unit.
+ * null = hard limit (no overage allowed, must upgrade)
  */
 export type PlanOverageRates = {
-  readonly storagePerGb: number | null; // cents per GB per month, null = hard limit (no overage)
-  readonly bandwidthPerGb: number | null; // cents per GB, null = hard limit (no overage)
-  readonly videosPerUnit: number | null; // cents per video, null = hard limit (no overage)
-  readonly aiRequestsPerUnit: number | null; // cents per AI request, null = hard limit (no overage)
+  readonly storagePerGb: number | null; // cents per GB per month
+  readonly bandwidthPerGb: number | null; // cents per GB
+  readonly videosPerUnit: number | null; // cents per video upload
+  readonly aiRequestsPerUnit: number | null; // cents per AI request
+  readonly transcriptionPerMin: number | null; // cents per transcription minute
 };
 
 // =============================================================================

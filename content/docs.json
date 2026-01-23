@@ -104,7 +104,7 @@
           },
           {
             "group": "Business",
-            "pages": ["docs/internal/pricing"]
+            "pages": ["docs/internal/pricing", "docs/internal/competitive-analysis"]
           }
         ]
       }
