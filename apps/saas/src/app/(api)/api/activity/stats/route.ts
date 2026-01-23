@@ -1,40 +1,24 @@
-import { auth } from '@nuclom/lib/auth';
-import {
-  ActivityFeedRepository,
-  ActivityFeedRepositoryLive,
-} from '@nuclom/lib/effect/services/activity-feed-repository';
-import { DatabaseLive } from '@nuclom/lib/effect/services/database';
-import {
-  OrganizationRepository,
-  OrganizationRepositoryLive,
-} from '@nuclom/lib/effect/services/organization-repository';
-import { logger } from '@nuclom/lib/logger';
-import { Effect, Layer, Option } from 'effect';
-import { NextResponse } from 'next/server';
+import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
+import { OrganizationRepository } from '@nuclom/lib/effect';
+import { ActivityFeedRepository } from '@nuclom/lib/effect/services/activity-feed-repository';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { Effect, Option } from 'effect';
+import type { NextRequest } from 'next/server';
 
-const ActivityFeedRepoWithDeps = ActivityFeedRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const OrgRepoWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const StatsLayer = Layer.mergeAll(ActivityFeedRepoWithDeps, OrgRepoWithDeps, DatabaseLive);
-
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const days = Number.parseInt(searchParams.get('days') ?? '30', 10);
 
-  // Verify the user is authenticated
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
-
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   const effect = Effect.gen(function* () {
+    // Authenticate using Auth service
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
+
     const activityRepo = yield* ActivityFeedRepository;
     const orgRepo = yield* OrganizationRepository;
 
     // Get the user's active organization
-    const activeOrgOption = yield* orgRepo.getActiveOrganization(session.user.id);
+    const activeOrgOption = yield* orgRepo.getActiveOrganization(user.id);
 
     if (Option.isNone(activeOrgOption)) {
       return { stats: [], days };
@@ -48,11 +32,6 @@ export async function GET(request: Request) {
     return { stats, days };
   });
 
-  try {
-    const result = await Effect.runPromise(Effect.provide(effect, StatsLayer));
-    return NextResponse.json(result);
-  } catch (err) {
-    logger.error('[Activity Stats Error]', err instanceof Error ? err : new Error(String(err)));
-    return NextResponse.json({ error: 'Failed to fetch activity stats' }, { status: 500 });
-  }
+  const exit = await runApiEffect(effect);
+  return handleEffectExit(exit);
 }

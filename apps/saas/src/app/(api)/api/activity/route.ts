@@ -1,19 +1,10 @@
-import { handleEffectExit } from '@nuclom/lib/api-handler';
-import { auth } from '@nuclom/lib/auth';
+import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
 import type { ActivityType } from '@nuclom/lib/db/schema';
 import { activityTypeEnum } from '@nuclom/lib/db/schema/enums';
-import { AppLive } from '@nuclom/lib/effect';
-import {
-  ActivityFeedRepository,
-  ActivityFeedRepositoryLive,
-} from '@nuclom/lib/effect/services/activity-feed-repository';
-import { Auth, makeAuthLayer } from '@nuclom/lib/effect/services/auth';
-import { DatabaseLive } from '@nuclom/lib/effect/services/database';
-import {
-  OrganizationRepository,
-  OrganizationRepositoryLive,
-} from '@nuclom/lib/effect/services/organization-repository';
-import { Effect, Layer, Option } from 'effect';
+import { OrganizationRepository } from '@nuclom/lib/effect';
+import { ActivityFeedRepository } from '@nuclom/lib/effect/services/activity-feed-repository';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { Effect, Option } from 'effect';
 import type { NextRequest } from 'next/server';
 import { connection } from 'next/server';
 
@@ -26,11 +17,6 @@ function isActivityType(value: string): value is ActivityType {
 function parseValidActivityTypes(input: string): ActivityType[] {
   return input.split(',').filter(isActivityType);
 }
-
-// Build layers with dependencies
-const ActivityFeedRepoWithDeps = ActivityFeedRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const OrgRepoWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const ActivityLayer = Layer.mergeAll(AppLive, ActivityFeedRepoWithDeps, OrgRepoWithDeps);
 
 export async function GET(request: NextRequest) {
   await connection();
@@ -84,11 +70,6 @@ export async function GET(request: NextRequest) {
     };
   });
 
-  // Compose layers with authentication
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(ActivityLayer, AuthLayer);
-  const runnable = Effect.provide(effect, FullLayer);
-  const exit = await Effect.runPromiseExit(runnable);
-
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit);
 }
