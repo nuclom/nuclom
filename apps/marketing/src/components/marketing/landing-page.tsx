@@ -21,10 +21,10 @@ const KnowledgeNetwork = lazy(() =>
 );
 
 const integrations = [
-  { icon: MessageSquare, name: 'Slack', color: 'text-pink-400' },
-  { icon: FileText, name: 'Notion', color: 'text-amber-400' },
-  { icon: Github, name: 'GitHub', color: 'text-violet-400' },
-  { icon: Video, name: 'Meetings', color: 'text-cyan-400' },
+  { icon: MessageSquare, name: 'Slack', color: 'text-pink-400', subtitle: null },
+  { icon: FileText, name: 'Notion', color: 'text-amber-400', subtitle: null },
+  { icon: Github, name: 'GitHub', color: 'text-violet-400', subtitle: null },
+  { icon: Video, name: 'Meetings', color: 'text-cyan-400', subtitle: 'Zoom, Meet, Teams' },
 ];
 
 const valueProps = [
@@ -56,9 +56,8 @@ export function LandingPage() {
           </Suspense>
         </div>
 
-        {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10" />
-        <div className="absolute inset-0 bg-gradient-hero z-5" />
+        {/* Gradient overlays for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40 z-10" />
 
         {/* Content */}
         <div className="relative z-20 w-full max-w-5xl mx-auto text-center">
@@ -108,14 +107,19 @@ export function LandingPage() {
 
           {/* Integration icons */}
           <FadeInSection delay={0.4}>
-            <div className="flex items-center justify-center gap-6 mt-16">
+            <div className="flex items-center justify-center gap-8 mt-16">
               {integrations.map((integration) => (
                 <div
                   key={integration.name}
-                  className="flex items-center gap-2 text-muted-foreground/60 hover:text-foreground transition-colors"
+                  className="flex flex-col items-center gap-1 text-muted-foreground/70 hover:text-foreground transition-colors"
                 >
-                  <integration.icon className={`w-5 h-5 ${integration.color}`} />
-                  <span className="text-sm hidden sm:inline">{integration.name}</span>
+                  <div className="flex items-center gap-2">
+                    <integration.icon className={`w-5 h-5 ${integration.color}`} />
+                    <span className="text-sm">{integration.name}</span>
+                  </div>
+                  {integration.subtitle && (
+                    <span className="text-xs text-muted-foreground/50">{integration.subtitle}</span>
+                  )}
                 </div>
               ))}
             </div>
@@ -213,10 +217,15 @@ export function LandingPage() {
                       style={{ animationDelay: `${i * 0.1}s` }}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg bg-white/5`}>
+                        <div className="p-2 rounded-lg bg-white/5">
                           <integration.icon className={`w-5 h-5 ${integration.color}`} />
                         </div>
-                        <span className="font-medium">{integration.name}</span>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{integration.name}</span>
+                          {integration.subtitle && (
+                            <span className="text-xs text-muted-foreground">{integration.subtitle}</span>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-green-500" />
