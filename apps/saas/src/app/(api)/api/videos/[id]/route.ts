@@ -9,7 +9,7 @@ import {
 import { ForbiddenError, revalidateVideo, ValidationError, VideoRepository } from '@nuclom/lib/effect';
 import { releaseVideoCount } from '@nuclom/lib/effect/services/billing-middleware';
 import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';
-import type { UpdateVideoInput } from '@nuclom/lib/effect/services/video-repository';
+import type { UpdateVideoInput } from '@nuclom/lib/effect/services/video-repository.types';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Option, Schema } from 'effect';
 import type { NextRequest } from 'next/server';

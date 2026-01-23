@@ -259,7 +259,6 @@ export {
   exchangeZoomCodeForToken,
   extractActionItems,
   extractDecisions,
-  extractKeyFromUrl,
   extractMetadata,
   findOneOrFail,
   findSimilarContentItems,

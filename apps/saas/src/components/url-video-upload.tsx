@@ -28,7 +28,6 @@ import { useToast } from '@/hooks/use-toast';
 interface UrlVideoUploadProps {
   organizationId: string;
   authorId: string;
-  channelId?: string;
   collectionId?: string;
   onUploadComplete?: (results: Array<{ videoId: string; title: string }>) => void;
   onCancel?: () => void;
@@ -138,7 +137,6 @@ function extractVideoTitle(url: string, platform: VideoPlatform): string {
 export function UrlVideoUpload({
   organizationId,
   authorId,
-  channelId,
   collectionId,
   onUploadComplete,
   onCancel,
@@ -270,7 +268,6 @@ export function UrlVideoUpload({
           title: upload.title,
           organizationId,
           authorId,
-          channelId,
           collectionId,
         }),
       });

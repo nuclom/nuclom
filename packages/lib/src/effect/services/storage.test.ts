@@ -48,11 +48,6 @@ describe('Storage Service', () => {
           : Effect.fail(new PresignedUrlError({ message: 'Storage not configured' })),
       ),
 
-    extractKeyFromUrl: vi.fn().mockImplementation((url) => {
-      const parts = url.split('.r2.cloudflarestorage.com/');
-      return parts.length === 2 ? parts[1] : null;
-    }),
-
     generateFileKey: vi.fn().mockImplementation((organizationId, filename, type = 'video') => {
       const timestamp = Date.now();
       const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -222,36 +217,6 @@ describe('Storage Service', () => {
 
         expect(result).toContain('test/file.mp4');
         expect(result).toContain('download');
-      });
-    });
-
-    describe('extractKeyFromUrl', () => {
-      it('should extract the key from a valid R2 URL', async () => {
-        const mockService = createMockStorageService();
-        const testLayer = createTestLayer(mockService);
-
-        const program = Effect.gen(function* () {
-          const storage = yield* Storage;
-          return storage.extractKeyFromUrl('https://bucket.account.r2.cloudflarestorage.com/org-123/videos/file.mp4');
-        });
-
-        const result = await Effect.runPromise(Effect.provide(program, testLayer));
-
-        expect(result).toBe('org-123/videos/file.mp4');
-      });
-
-      it('should return null for invalid URLs', async () => {
-        const mockService = createMockStorageService();
-        const testLayer = createTestLayer(mockService);
-
-        const program = Effect.gen(function* () {
-          const storage = yield* Storage;
-          return storage.extractKeyFromUrl('https://example.com/file.mp4');
-        });
-
-        const result = await Effect.runPromise(Effect.provide(program, testLayer));
-
-        expect(result).toBeNull();
       });
     });
 

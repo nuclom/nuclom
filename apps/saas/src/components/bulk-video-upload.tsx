@@ -28,7 +28,6 @@ import { useToast } from '@/hooks/use-toast';
 interface BulkVideoUploadProps {
   organizationId: string;
   authorId: string;
-  channelId?: string;
   collectionId?: string;
   onUploadComplete?: (results: Array<{ videoId: string; title: string }>) => void;
   onCancel?: () => void;
@@ -77,7 +76,6 @@ function isAbortError(error: unknown): boolean {
 export function BulkVideoUpload({
   organizationId,
   authorId,
-  channelId,
   collectionId,
   onUploadComplete,
   onCancel,
@@ -285,7 +283,6 @@ export function BulkVideoUpload({
           title: upload.title,
           organizationId,
           authorId,
-          channelId,
           collectionId,
         }),
         signal: abortController.signal,

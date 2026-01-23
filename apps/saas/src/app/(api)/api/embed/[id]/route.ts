@@ -63,33 +63,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const presignedUrlEffect = Effect.gen(function* () {
       const storage = yield* Storage;
 
-      // Extract file key from stored URL (supports both legacy URL and new key format)
-      let videoKey: string;
-      if (videoUrlValue.includes('.r2.cloudflarestorage.com/')) {
-        const extractedKey = storage.extractKeyFromUrl(videoUrlValue);
-        if (!extractedKey) {
-          return { videoUrl: null, thumbnailUrl: null };
-        }
-        videoKey = extractedKey;
-      } else {
-        videoKey = videoUrlValue;
-      }
-
-      const presignedVideoUrl = yield* storage.generatePresignedDownloadUrl(videoKey, 3600);
+      const presignedVideoUrl = yield* storage.generatePresignedDownloadUrl(videoUrlValue, 3600);
 
       let presignedThumbnailUrl: string | null = null;
       if (video.thumbnailUrl) {
-        let thumbnailKey: string;
-        if (video.thumbnailUrl.includes('.r2.cloudflarestorage.com/')) {
-          const extractedKey = storage.extractKeyFromUrl(video.thumbnailUrl);
-          if (extractedKey) {
-            thumbnailKey = extractedKey;
-            presignedThumbnailUrl = yield* storage.generatePresignedDownloadUrl(thumbnailKey, 3600);
-          }
-        } else {
-          thumbnailKey = video.thumbnailUrl;
-          presignedThumbnailUrl = yield* storage.generatePresignedDownloadUrl(thumbnailKey, 3600);
-        }
+        presignedThumbnailUrl = yield* storage.generatePresignedDownloadUrl(video.thumbnailUrl, 3600);
       }
 
       return { videoUrl: presignedVideoUrl, thumbnailUrl: presignedThumbnailUrl };
