@@ -58,9 +58,6 @@ const nextConfig: NextConfig = {
       'posthog-js',
       'ai',
     ],
-    // Reduce parallelism during build to prevent OOM on Vercel
-    workerThreads: false,
-    cpus: 2,
   },
 
   // Image optimization configuration
@@ -154,15 +151,15 @@ const withI18n = withNextIntl(nextConfig);
 const withPostHog = (config: NextConfig) =>
   process.env.POSTHOG_PERSONAL_API_KEY
     ? withPostHogConfig(config, {
-        personalApiKey: process.env.POSTHOG_PERSONAL_API_KEY,
-        envId: process.env.POSTHOG_ENV_ID ?? 'default',
-        host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://eu.i.posthog.com',
-        sourcemaps: {
-          enabled: true,
-          project: 'nuclom',
-          version: process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.BUILD_ID ?? 'development',
-        },
-      })
+      personalApiKey: process.env.POSTHOG_PERSONAL_API_KEY,
+      envId: process.env.POSTHOG_ENV_ID ?? 'default',
+      host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://eu.i.posthog.com',
+      sourcemaps: {
+        enabled: true,
+        project: 'nuclom',
+        version: process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.BUILD_ID ?? 'development',
+      },
+    })
     : config;
 
 export default withWorkflow(withMicrofrontends(withPostHog(withI18n)));
