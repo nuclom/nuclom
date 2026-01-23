@@ -1,5 +1,8 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
+  "remoteCache": {
+    "enabled": true
+  },
   "globalEnv": [
     "DATABASE_URL",
     "BETTER_AUTH_SECRET",
