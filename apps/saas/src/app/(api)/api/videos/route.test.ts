@@ -99,10 +99,6 @@ describe('Videos API Route', () => {
       generatePresignedDownloadUrl: vi
         .fn()
         .mockImplementation(() => Effect.succeed('https://example.com/presigned-download')),
-      extractKeyFromUrl: vi.fn().mockImplementation((url: string) => {
-        const parts = url.split('.r2.cloudflarestorage.com/');
-        return parts.length === 2 ? parts[1] : null;
-      }),
       generateFileKey: vi.fn().mockImplementation(() => 'org/videos/123-test.mp4'),
       isConfigured: true,
     };

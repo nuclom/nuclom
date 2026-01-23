@@ -96,11 +96,10 @@ export async function generateAndUploadThumbnail(
       }),
     );
 
-    const thumbnailUrl = `https://${bucketName}.${accountId}.r2.cloudflarestorage.com/${thumbnailKey}`;
+    log.info({ videoId, thumbnailKey }, 'Thumbnail generated and uploaded successfully');
 
-    log.info({ videoId, thumbnailUrl }, 'Thumbnail generated and uploaded successfully');
-
-    return thumbnailUrl;
+    // Return the storage key, not the full URL
+    return thumbnailKey;
   } catch (error) {
     log.error({ error, videoId }, 'Failed to generate thumbnail, continuing without it');
     return null;

@@ -163,7 +163,7 @@ export class AuditLogger {
    */
   static async logContent(
     action: 'created' | 'updated' | 'deleted' | 'shared' | 'downloaded',
-    resourceType: 'video' | 'channel' | 'collection' | 'comment',
+    resourceType: 'video' | 'collection' | 'comment',
     context: AuditLogContext,
     details: {
       resourceId: string;

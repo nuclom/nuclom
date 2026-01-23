@@ -55,33 +55,11 @@ async function getPresignedUrls(
   const effect = Effect.gen(function* () {
     const storage = yield* Storage;
 
-    // Extract file key (supports both legacy URL and new key format)
-    let videoKey: string;
-    if (videoUrl.includes('.r2.cloudflarestorage.com/')) {
-      const extractedKey = storage.extractKeyFromUrl(videoUrl);
-      if (!extractedKey) {
-        return { videoUrl: null, thumbnailUrl: null };
-      }
-      videoKey = extractedKey;
-    } else {
-      videoKey = videoUrl;
-    }
-
-    const presignedVideoUrl = yield* storage.generatePresignedDownloadUrl(videoKey, 3600);
+    const presignedVideoUrl = yield* storage.generatePresignedDownloadUrl(videoUrl, 3600);
 
     let presignedThumbnailUrl: string | null = null;
     if (thumbnailUrl) {
-      let thumbnailKey: string;
-      if (thumbnailUrl.includes('.r2.cloudflarestorage.com/')) {
-        const extractedKey = storage.extractKeyFromUrl(thumbnailUrl);
-        if (extractedKey) {
-          thumbnailKey = extractedKey;
-          presignedThumbnailUrl = yield* storage.generatePresignedDownloadUrl(thumbnailKey, 3600);
-        }
-      } else {
-        thumbnailKey = thumbnailUrl;
-        presignedThumbnailUrl = yield* storage.generatePresignedDownloadUrl(thumbnailKey, 3600);
-      }
+      presignedThumbnailUrl = yield* storage.generatePresignedDownloadUrl(thumbnailUrl, 3600);
     }
 
     return { videoUrl: presignedVideoUrl, thumbnailUrl: presignedThumbnailUrl };
