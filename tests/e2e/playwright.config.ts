@@ -17,14 +17,23 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // Use 4 workers in CI for parallel execution (was: 1 which ran tests serially)
+  workers: process.env.CI ? 4 : undefined,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'html',
   outputDir: './test-results',
+  // Global timeout limits to prevent tests hanging
+  timeout: 30000, // 30s per test (default is 30s)
+  expect: {
+    timeout: 5000, // 5s for expect assertions (default is 5s)
+  },
 
   use: {
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'on-first-retry',
+    // Faster navigation - domcontentloaded is sufficient for most cases
+    navigationTimeout: 10000,
+    actionTimeout: 5000,
     // Bypass Vercel deployment protection in CI
     ...(process.env.VERCEL_AUTOMATION_BYPASS_SECRET && {
       extraHTTPHeaders: {

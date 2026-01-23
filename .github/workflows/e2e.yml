@@ -129,15 +129,19 @@ jobs:
             });
 
   e2e-tests:
-    name: Playwright
+    name: Playwright (${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
     needs: determine-tests
     if: needs.determine-tests.outputs.skip_all == 'false'
-    timeout-minutes: 30
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
 
     steps:
       - name: Set commit status to pending
-        if: ${{ github.event.inputs.triggered_by_sha }}
+        if: ${{ github.event.inputs.triggered_by_sha && matrix.shard == 1 }}
         uses: actions/github-script@v7
         with:
           script: |
@@ -186,11 +190,12 @@ jobs:
           echo "  Marketing URL: ${{ github.event.inputs.marketing_url || '(not deployed)' }}"
           echo "  Run SaaS tests: ${{ needs.determine-tests.outputs.run_saas }}"
           echo "  Run Marketing tests: ${{ needs.determine-tests.outputs.run_marketing }}"
+          echo "  Shard: ${{ matrix.shard }}/3"
           echo "  Triggered by SHA: ${{ github.event.inputs.triggered_by_sha || '(manual trigger)' }}"
 
       - name: Run SaaS E2E tests
         if: needs.determine-tests.outputs.run_saas == 'true'
-        run: pnpm test:saas
+        run: pnpm test:saas --shard=${{ matrix.shard }}/3
         working-directory: tests/e2e
         env:
           SAAS_BASE_URL: ${{ github.event.inputs.saas_url }}
@@ -201,7 +206,7 @@ jobs:
 
       - name: Run Marketing E2E tests
         if: needs.determine-tests.outputs.run_marketing == 'true'
-        run: pnpm test:marketing
+        run: pnpm test:marketing --shard=${{ matrix.shard }}/3
         working-directory: tests/e2e
         env:
           MARKETING_BASE_URL: ${{ github.event.inputs.marketing_url }}
@@ -211,7 +216,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report-${{ github.run_id }}
+          name: playwright-report-${{ github.run_id }}-shard-${{ matrix.shard }}
           path: tests/e2e/playwright-report/
           retention-days: 14
 
@@ -219,7 +224,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results-${{ github.run_id }}
+          name: test-results-${{ github.run_id }}-shard-${{ matrix.shard }}
           path: tests/e2e/test-results/
           retention-days: 14
 
@@ -230,7 +235,7 @@ jobs:
           name: "Vercel - nuclom-saas: E2E Tests"
 
       - name: Set commit status to success/failure
-        if: ${{ always() && github.event.inputs.triggered_by_sha }}
+        if: ${{ always() && github.event.inputs.triggered_by_sha && matrix.shard == 1 }}
         uses: actions/github-script@v7
         with:
           script: |
