@@ -1,10 +1,7 @@
 import { withPostHogConfig } from '@posthog/nextjs-config';
 import { withMicrofrontends } from '@vercel/microfrontends/next/config';
 import type { NextConfig } from 'next';
-import createNextIntlPlugin from 'next-intl/plugin';
 import { withWorkflow } from 'workflow/next';
-
-const withNextIntl = createNextIntlPlugin('./src/lib/i18n/request.ts');
 
 const nextConfig: NextConfig = {
   // Enable Partial Prerendering (PPR) via cache components
@@ -146,8 +143,6 @@ const nextConfig: NextConfig = {
   },
 };
 
-const withI18n = withNextIntl(nextConfig);
-
 const withPostHog = (config: NextConfig) =>
   process.env.POSTHOG_PERSONAL_API_KEY
     ? withPostHogConfig(config, {
@@ -162,4 +157,10 @@ const withPostHog = (config: NextConfig) =>
       })
     : config;
 
-export default withWorkflow(withMicrofrontends(withPostHog(withI18n)));
+// Apply cacheComponents after all HOC wrappers to ensure it's preserved
+const wrappedConfig = withWorkflow(withMicrofrontends(withPostHog(nextConfig)));
+
+export default {
+  ...wrappedConfig,
+  cacheComponents: true,
+} satisfies NextConfig;
