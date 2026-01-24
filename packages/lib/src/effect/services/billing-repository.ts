@@ -166,9 +166,7 @@ export interface BillingRepositoryService {
     field: 'storageUsed' | 'videosUploaded',
     amount: number,
   ) => Effect.Effect<Usage, UsageTrackingError>;
-  readonly getUsageSummary: (
-    organizationId: string,
-  ) => Effect.Effect<UsageSummary, NoSubscriptionError | DatabaseError>;
+  readonly getUsageSummary: (organizationId: string) => Effect.Effect<UsageSummary, DatabaseError>;
   readonly getUsageHistory: (organizationId: string, months: number) => Effect.Effect<Usage[], DatabaseError>;
 
   // Invoices
@@ -695,11 +693,15 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
 
   getUsageSummary: (organizationId) =>
     Effect.gen(function* () {
-      const subscription = yield* makeBillingRepository(db).getSubscription(organizationId);
+      // Try to get subscription, but fall back to free tier limits if no subscription exists
+      const subscriptionOption = yield* makeBillingRepository(db).getSubscription(organizationId).pipe(Effect.option);
+      const subscription = Option.getOrNull(subscriptionOption);
       const currentUsage = yield* makeBillingRepository(db).getCurrentUsage(organizationId);
 
-      // Get limits from local plan or from plan name-based defaults
-      const limits = subscription.planInfo?.limits || getPlanLimitsByName(subscription.plan);
+      // Get limits from subscription plan or use default free tier limits
+      const limits = subscription
+        ? subscription.planInfo?.limits || getPlanLimitsByName(subscription.plan)
+        : getPlanLimitsByName('scale'); // Default to scale limits for users without subscription
 
       // Get overage data
       const overage = {
