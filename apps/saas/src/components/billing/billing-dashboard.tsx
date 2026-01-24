@@ -25,7 +25,7 @@ export function BillingDashboard({
   organizationId,
   organizationSlug,
   billingInfo,
-  plans: _plans,
+  plans,
   usageSummary,
   currentUserId,
   isOwner,
@@ -71,6 +71,8 @@ export function BillingDashboard({
             organizationSlug={organizationSlug}
             currentUserId={currentUserId}
             isOwner={isOwner}
+            plans={plans}
+            usageSummary={usageSummary}
           />
         </TabsContent>
 

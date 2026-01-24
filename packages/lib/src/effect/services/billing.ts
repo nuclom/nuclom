@@ -107,9 +107,7 @@ export interface BillingServiceInterface {
   // Billing Info
   readonly getBillingInfo: (organizationId: string) => Effect.Effect<OrganizationBillingInfo, DatabaseError>;
 
-  readonly getUsageSummary: (
-    organizationId: string,
-  ) => Effect.Effect<UsageSummary, NoSubscriptionError | DatabaseError>;
+  readonly getUsageSummary: (organizationId: string) => Effect.Effect<UsageSummary, DatabaseError>;
 
   // Plan Limits
   readonly checkLimit: (

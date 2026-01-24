@@ -53,12 +53,9 @@ async function getBillingData(organizationSlug: string) {
     const billing = yield* Billing;
     const plans = yield* billing.getPlans();
 
-    // Get usage summary if subscription exists
-    let usageSummary = null;
-    if (billingInfo.subscription) {
-      const summary = yield* billing.getUsageSummary(org.id).pipe(Effect.option);
-      usageSummary = Option.getOrNull(summary);
-    }
+    // Always fetch usage summary (for both subscribed and free users)
+    const summary = yield* billing.getUsageSummary(org.id).pipe(Effect.option);
+    const usageSummary = Option.getOrNull(summary);
 
     return {
       organizationId: org.id,
