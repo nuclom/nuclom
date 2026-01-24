@@ -157,10 +157,4 @@ const withPostHog = (config: NextConfig) =>
       })
     : config;
 
-// Apply cacheComponents after all HOC wrappers to ensure it's preserved
-const wrappedConfig = withWorkflow(withMicrofrontends(withPostHog(nextConfig)));
-
-export default {
-  ...wrappedConfig,
-  cacheComponents: true,
-} satisfies NextConfig;
+export default withWorkflow(withMicrofrontends(withPostHog(nextConfig)));
