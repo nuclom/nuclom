@@ -20,6 +20,8 @@ on:
       - "vercel.deployment.success"
       # Build finished, awaiting promotion (preview deployments)
       - "vercel.deployment.ready"
+      # Deployment skipped due to "Skip Unaffected Projects" setting
+      - "vercel.deployment.skipped"
 
 # No concurrency limit - each deployment event runs independently.
 # Whichever deployment finishes second will see both URLs ready and trigger E2E.
@@ -40,10 +42,13 @@ jobs:
           echo "Received Vercel deployment event"
           echo "  Event type: ${{ github.event.action }}"
           echo "  Project: ${{ github.event.client_payload.project.name }}"
-          echo "  URL: ${{ github.event.client_payload.url }}"
+          echo "  URL: ${{ github.event.client_payload.url || '(skipped/none)' }}"
           echo "  Environment: ${{ github.event.client_payload.environment }}"
           echo "  Git SHA: ${{ github.event.client_payload.git.sha }}"
           echo "  Git Ref: ${{ github.event.client_payload.git.ref }}"
+          if [ "${{ github.event.action }}" = "vercel.deployment.skipped" ]; then
+            echo "  Note: This deployment was skipped by Vercel (no changes affected this project)"
+          fi
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -111,6 +116,8 @@ jobs:
             const currentUrl = payload.url;
             const projectName = payload.project.name;
             const gitRef = payload.git.ref;
+            const eventType = context.payload.action;
+            const isSkipped = eventType === 'vercel.deployment.skipped';
 
             // Get Turborepo analysis results
             const expectSaas = process.env.SAAS_AFFECTED === 'true';
@@ -127,13 +134,15 @@ jobs:
 
             console.log(`Processing ${isSaas ? 'nuclom-saas' : 'nuclom-marketing'} deployment`);
             console.log(`  SHA: ${sha}`);
-            console.log(`  URL: ${currentUrl}`);
+            console.log(`  URL: ${currentUrl || '(none)'}`);
+            console.log(`  Event: ${eventType}${isSkipped ? ' (deployment was skipped by Vercel)' : ''}`);
 
             console.log(`Expected deployments (from Turborepo):`);
             console.log(`  SaaS: ${expectSaas ? 'expected' : 'skipped (no changes)'}`);
             console.log(`  Marketing: ${expectMarketing ? 'expected' : 'skipped (no changes)'}`);
 
             // Helper to check all deployment statuses for this SHA
+            // Returns URLs for successful deployments and flags for skipped ones
             async function checkDeployments() {
               const { data: deployments } = await github.rest.repos.listDeployments({
                 owner: context.repo.owner,
@@ -144,6 +153,8 @@ jobs:
 
               let saasUrl = null;
               let marketingUrl = null;
+              let saasSkipped = false;
+              let marketingSkipped = false;
 
               for (const deployment of deployments) {
                 const { data: statuses } = await github.rest.repos.listDeploymentStatuses({
@@ -153,17 +164,24 @@ jobs:
                   per_page: 1
                 });
 
-                if (statuses.length > 0 && statuses[0].state === 'success') {
-                  const statusUrl = statuses[0].environment_url || statuses[0].target_url;
-                  if (statusUrl?.includes('nuclom-saas')) {
-                    saasUrl = statusUrl;
-                  } else if (statusUrl?.includes('nuclom-marketing')) {
-                    marketingUrl = statusUrl;
+                if (statuses.length > 0) {
+                  const status = statuses[0];
+                  const statusUrl = status.environment_url || status.target_url;
+                  const isSaasDeployment = statusUrl?.includes('nuclom-saas') || deployment.environment?.includes('nuclom-saas');
+                  const isMarketingDeployment = statusUrl?.includes('nuclom-marketing') || deployment.environment?.includes('nuclom-marketing');
+
+                  if (status.state === 'success') {
+                    if (isSaasDeployment) saasUrl = statusUrl;
+                    if (isMarketingDeployment) marketingUrl = statusUrl;
+                  } else if (status.state === 'inactive') {
+                    // Deployment was skipped by Vercel
+                    if (isSaasDeployment) saasSkipped = true;
+                    if (isMarketingDeployment) marketingSkipped = true;
                   }
                 }
               }
 
-              return { saasUrl, marketingUrl };
+              return { saasUrl, marketingUrl, saasSkipped, marketingSkipped };
             }
 
             // Helper to trigger E2E workflow
@@ -196,27 +214,44 @@ jobs:
             }
 
             // Initial check - include the URL from the current event
-            let { saasUrl, marketingUrl } = await checkDeployments();
+            let { saasUrl, marketingUrl, saasSkipped, marketingSkipped } = await checkDeployments();
 
             // The current event's URL might not be in GitHub's deployment API yet,
             // so add it manually based on the project type
-            if (isSaas && !saasUrl) {
-              saasUrl = currentUrl;
-            } else if (isMarketing && !marketingUrl) {
-              marketingUrl = currentUrl;
+            if (isSaas) {
+              if (isSkipped) {
+                saasSkipped = true;
+              } else if (!saasUrl && currentUrl) {
+                saasUrl = currentUrl;
+              }
+            } else if (isMarketing) {
+              if (isSkipped) {
+                marketingSkipped = true;
+              } else if (!marketingUrl && currentUrl) {
+                marketingUrl = currentUrl;
+              }
             }
 
             console.log(`Current deployment status:`);
-            console.log(`  SaaS: ${saasUrl || 'not ready'}`);
-            console.log(`  Marketing: ${marketingUrl || 'not ready'}`);
+            console.log(`  SaaS: ${saasUrl || (saasSkipped ? 'skipped by Vercel' : 'not ready')}`);
+            console.log(`  Marketing: ${marketingUrl || (marketingSkipped ? 'skipped by Vercel' : 'not ready')}`);
 
-            // Check if all expected deployments are ready
-            const saasReady = !expectSaas || saasUrl;
-            const marketingReady = !expectMarketing || marketingUrl;
+            // Check if all expected deployments are ready (either have URL or were skipped)
+            // A deployment is "ready" if:
+            // 1. Turborepo says it's not affected (expectSaas/expectMarketing is false), OR
+            // 2. It has a deployment URL (saasUrl/marketingUrl), OR
+            // 3. It was skipped by Vercel (saasSkipped/marketingSkipped)
+            const saasReady = !expectSaas || saasUrl || saasSkipped;
+            const marketingReady = !expectMarketing || marketingUrl || marketingSkipped;
+
+            // Determine if we should actually run tests for each app
+            // Only run tests if the app was expected AND has a URL (not skipped)
+            const shouldTestSaas = expectSaas && saasUrl && !saasSkipped;
+            const shouldTestMarketing = expectMarketing && marketingUrl && !marketingSkipped;
 
             if (saasReady && marketingReady) {
               console.log('All expected deployments ready, triggering E2E tests');
-              await triggerE2E(saasUrl, marketingUrl, expectSaas, expectMarketing);
+              await triggerE2E(saasUrl, marketingUrl, shouldTestSaas, shouldTestMarketing);
               return;
             }
 
