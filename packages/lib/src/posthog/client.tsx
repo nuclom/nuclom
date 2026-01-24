@@ -136,6 +136,3 @@ export function PostHogProvider({ children }: { children: ReactNode }) {
 
 // Re-export posthog instance for direct usage
 export { posthog };
-
-// Re-export useful hooks
-export { useActiveFeatureFlags, useFeatureFlagEnabled, useFeatureFlagPayload, usePostHog } from 'posthog-js/react';

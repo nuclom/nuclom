@@ -4,7 +4,7 @@ import { getCachedOrganizationBySlug } from '@nuclom/lib/effect';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { InsightsDashboard } from '@/components/insights';
+import { InsightsDashboard } from '@/components/insights/insights-dashboard';
 
 // =============================================================================
 // Loading Skeleton

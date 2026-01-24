@@ -13,13 +13,14 @@ import { trackVideoUpload } from '@nuclom/lib/effect/services/billing-middleware
 import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';
 import { createLogger } from '@nuclom/lib/logger';
 import type { ApiResponse } from '@nuclom/lib/types';
-import { sanitizeDescription, sanitizeTitle, validate } from '@nuclom/lib/validation';
+import { validate } from '@nuclom/lib/validation';
+import { sanitizeDescription, sanitizeTitle } from '@nuclom/lib/validation/sanitize';
 import { Effect, Option, Schema } from 'effect';
 
 const log = createLogger('video-upload');
 
 import { connection, type NextRequest, NextResponse } from 'next/server';
-import { processVideoWorkflow } from '@/workflows/video-processing';
+import { processVideoWorkflow } from '@/workflows/video-processing/workflow';
 
 // =============================================================================
 // Types

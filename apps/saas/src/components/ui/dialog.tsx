@@ -1,8 +1,8 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
-import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
+import { Dialog as DialogPrimitive } from 'radix-ui';
 import * as React from 'react';
 
 const Dialog = DialogPrimitive.Root;

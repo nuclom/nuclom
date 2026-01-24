@@ -1,8 +1,8 @@
 'use client';
 
+import { Button } from '@nuclom/ui/button';
 import { Link } from '@vercel/microfrontends/next/client';
 import { ArrowRight, Check, FileText, Github, MessageSquare, Sparkles, Video } from 'lucide-react';
-import { lazy, Suspense } from 'react';
 import { MarketingFooter } from '@/components/marketing-footer';
 import { MarketingHeader } from '@/components/marketing-header';
 import {
@@ -13,12 +13,6 @@ import {
   StaggerChildren,
   StaggerItem,
 } from '@/components/motion/animated-section';
-import { Button } from '@/components/ui/button';
-
-// Lazy load 3D components for performance
-const KnowledgeNetwork = lazy(() =>
-  import('@/components/three/knowledge-network').then((mod) => ({ default: mod.KnowledgeNetwork })),
-);
 
 const integrations = [
   { icon: MessageSquare, name: 'Messaging', color: 'text-pink-400', subtitle: 'Slack, Discord' },
@@ -49,12 +43,8 @@ export function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden">
-        {/* 3D Background */}
-        <div className="absolute inset-0 z-0">
-          <Suspense fallback={<div className="absolute inset-0 bg-gradient-hero" />}>
-            <KnowledgeNetwork />
-          </Suspense>
-        </div>
+        {/* Gradient Background */}
+        <div className="absolute inset-0 z-0 bg-gradient-hero" />
 
         {/* Gradient overlays for text readability */}
         <div className="absolute inset-0 bg-linear-to-t from-background via-background/80 to-background/40 z-10" />

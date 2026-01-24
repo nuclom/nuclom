@@ -21,7 +21,6 @@
     "stripe": "catalog:"
   },
   "devDependencies": {
-    "@biomejs/biome": "catalog:",
     "@nuclom/config": "workspace:*",
     "@types/node": "catalog:",
     "@typescript/native-preview": "catalog:",

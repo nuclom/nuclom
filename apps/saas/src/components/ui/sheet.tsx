@@ -1,9 +1,9 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
-import * as SheetPrimitive from '@radix-ui/react-dialog';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { X } from 'lucide-react';
+import { Dialog as SheetPrimitive } from 'radix-ui';
 import * as React from 'react';
 
 const Sheet = SheetPrimitive.Root;

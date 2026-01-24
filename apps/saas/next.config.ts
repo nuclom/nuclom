@@ -1,10 +1,7 @@
 import { withPostHogConfig } from '@posthog/nextjs-config';
 import { withMicrofrontends } from '@vercel/microfrontends/next/config';
 import type { NextConfig } from 'next';
-import createNextIntlPlugin from 'next-intl/plugin';
 import { withWorkflow } from 'workflow/next';
-
-const withNextIntl = createNextIntlPlugin('./src/lib/i18n/request.ts');
 
 const nextConfig: NextConfig = {
   // Enable React Compiler for automatic memoization
@@ -149,8 +146,6 @@ const nextConfig: NextConfig = {
   },
 };
 
-const withI18n = withNextIntl(nextConfig);
-
 const withPostHog = (config: NextConfig) =>
   process.env.POSTHOG_PERSONAL_API_KEY
     ? withPostHogConfig(config, {
@@ -165,4 +160,4 @@ const withPostHog = (config: NextConfig) =>
       })
     : config;
 
-export default withWorkflow(withMicrofrontends(withPostHog(withI18n)));
+export default withWorkflow(withMicrofrontends(withPostHog(nextConfig)));

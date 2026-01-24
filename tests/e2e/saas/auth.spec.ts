@@ -82,13 +82,13 @@ test.describe('Register Page', () => {
 
   test('should have OAuth buttons or beta form', async ({ page }) => {
     // If signups are enabled, GitHub OAuth button is shown
-    // If signups are disabled, private beta form is shown
+    // If signups are disabled, private beta form with "Request Access" button is shown
     const hasGithub = await page
       .getByRole('button', { name: /github/i })
       .isVisible()
       .catch(() => false);
     const hasBetaForm = await page
-      .getByText(/private beta/i)
+      .getByRole('button', { name: /request access/i })
       .isVisible()
       .catch(() => false);
     expect(hasGithub || hasBetaForm).toBeTruthy();

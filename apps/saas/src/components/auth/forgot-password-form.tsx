@@ -1,7 +1,8 @@
 'use client';
 
 import { logger } from '@nuclom/lib/client-logger';
-import { ForgotPasswordSchema, safeParse } from '@nuclom/lib/validation';
+import { safeParse } from '@nuclom/lib/validation';
+import { ForgotPasswordSchema } from '@nuclom/lib/validation/schemas';
 import { Link } from '@vercel/microfrontends/next/client';
 import { ArrowLeft, CheckCircle2, Loader2, Mail } from 'lucide-react';
 import { useState } from 'react';

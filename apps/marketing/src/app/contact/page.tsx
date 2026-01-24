@@ -1,16 +1,69 @@
+'use client';
+
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Input } from '@nuclom/ui/input';
+import { Label } from '@nuclom/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@nuclom/ui/select';
+import { Textarea } from '@nuclom/ui/textarea';
 import { Link } from '@vercel/microfrontends/next/client';
-import { ArrowLeft, Clock, Mail, MapPin, Phone, Play } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { ArrowLeft, CheckCircle, Loader2, Play } from 'lucide-react';
+import { useState } from 'react';
 
 export default function ContactPage() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [company, setCompany] = useState('');
+  const [jobTitle, setJobTitle] = useState('');
+  const [teamSize, setTeamSize] = useState('');
+  const [industry, setIndustry] = useState('');
+  const [useCase, setUseCase] = useState('');
+  const [timeline, setTimeline] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          phone: phone || undefined,
+          company,
+          jobTitle: jobTitle || undefined,
+          teamSize: teamSize || undefined,
+          industry: industry || undefined,
+          useCase: useCase || undefined,
+          timeline: timeline || undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to submit contact request');
+      }
+
+      setIsSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -30,65 +83,106 @@ export default function ContactPage() {
         </div>
       </header>
 
-      {/* Content */}
       <main className="flex-1 py-16 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
+        <div className="container mx-auto max-w-2xl">
+          <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact Sales</h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Ready to unify your organization's knowledge? Let's discuss how Nuclom can help your team discover
-              insights across all your tools.
+            <p className="text-xl text-muted-foreground">
+              Ready to unify your organization's knowledge? Let's discuss how Nuclom can help your team.
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-12">
-            {/* Contact Form */}
-            <div className="lg:col-span-2">
-              <Card className="shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-2xl">Get in Touch</CardTitle>
-                  <CardDescription>
-                    Fill out the form below and our sales team will get back to you within 24 hours.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-2xl">Get in Touch</CardTitle>
+              <CardDescription>
+                Fill out the form below and our sales team will get back to you within 24 hours.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isSubmitted ? (
+                <div className="text-center py-8">
+                  <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">Thank you for reaching out!</h3>
+                  <p className="text-muted-foreground">
+                    We've received your inquiry and will get back to you within 24 hours.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="firstName">First Name *</Label>
-                      <Input id="firstName" placeholder="John" required />
+                      <Input
+                        id="firstName"
+                        placeholder="John"
+                        required
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="lastName">Last Name *</Label>
-                      <Input id="lastName" placeholder="Doe" required />
+                      <Input
+                        id="lastName"
+                        placeholder="Doe"
+                        required
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                      />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="email">Work Email *</Label>
-                      <Input id="email" type="email" placeholder="john@company.com" required />
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="john@company.com"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone">Phone Number</Label>
-                      <Input id="phone" type="tel" placeholder="+1 (555) 000-0000" />
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="+1 (555) 000-0000"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                      />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="company">Company *</Label>
-                      <Input id="company" placeholder="Acme Inc." required />
+                      <Input
+                        id="company"
+                        placeholder="Acme Inc."
+                        required
+                        value={company}
+                        onChange={(e) => setCompany(e.target.value)}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="jobTitle">Job Title</Label>
-                      <Input id="jobTitle" placeholder="VP of Marketing" />
+                      <Input
+                        id="jobTitle"
+                        placeholder="VP of Marketing"
+                        value={jobTitle}
+                        onChange={(e) => setJobTitle(e.target.value)}
+                      />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="teamSize">Team Size</Label>
-                      <Select>
+                      <Select value={teamSize} onValueChange={setTeamSize}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select team size" />
                         </SelectTrigger>
@@ -103,17 +197,17 @@ export default function ContactPage() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="industry">Industry</Label>
-                      <Select>
+                      <Select value={industry} onValueChange={setIndustry}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select industry" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="technology">Technology</SelectItem>
-                          <SelectItem value="education">Education</SelectItem>
-                          <SelectItem value="healthcare">Healthcare</SelectItem>
-                          <SelectItem value="finance">Finance</SelectItem>
-                          <SelectItem value="media">Media & Entertainment</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="Technology">Technology</SelectItem>
+                          <SelectItem value="Education">Education</SelectItem>
+                          <SelectItem value="Healthcare">Healthcare</SelectItem>
+                          <SelectItem value="Finance">Finance</SelectItem>
+                          <SelectItem value="Media & Entertainment">Media & Entertainment</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -123,29 +217,40 @@ export default function ContactPage() {
                     <Label htmlFor="useCase">How do you plan to use Nuclom?</Label>
                     <Textarea
                       id="useCase"
-                      placeholder="Tell us about your knowledge management needs, which tools you want to connect (Slack, Notion, GitHub, etc.), and what insights you're looking to surface..."
-                      rows={4}
+                      placeholder="Tell us about your knowledge management needs..."
+                      rows={3}
+                      value={useCase}
+                      onChange={(e) => setUseCase(e.target.value)}
                     />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="timeline">Implementation Timeline</Label>
-                    <Select>
+                    <Select value={timeline} onValueChange={setTimeline}>
                       <SelectTrigger>
                         <SelectValue placeholder="When are you looking to get started?" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="immediate">Immediately</SelectItem>
-                        <SelectItem value="1-month">Within 1 month</SelectItem>
-                        <SelectItem value="3-months">Within 3 months</SelectItem>
-                        <SelectItem value="6-months">Within 6 months</SelectItem>
-                        <SelectItem value="evaluating">Just evaluating</SelectItem>
+                        <SelectItem value="Immediately">Immediately</SelectItem>
+                        <SelectItem value="Within 1 month">Within 1 month</SelectItem>
+                        <SelectItem value="Within 3 months">Within 3 months</SelectItem>
+                        <SelectItem value="Within 6 months">Within 6 months</SelectItem>
+                        <SelectItem value="Just evaluating">Just evaluating</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  <Button className="w-full" size="lg">
-                    Request Demo
+                  {error && <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">{error}</div>}
+
+                  <Button className="w-full" size="lg" type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      'Request Demo'
+                    )}
                   </Button>
 
                   <p className="text-sm text-muted-foreground text-center">
@@ -159,85 +264,13 @@ export default function ContactPage() {
                     </Link>
                     .
                   </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Contact Information */}
-            <div className="space-y-6">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-primary/20 to-primary/10 rounded-xl flex items-center justify-center">
-                      <Mail className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">Email</h3>
-                      <p className="text-muted-foreground">sales@nuclom.com</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">Send us an email and we'll respond within 24 hours.</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-primary/20 to-primary/10 rounded-xl flex items-center justify-center">
-                      <Phone className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">Phone</h3>
-                      <p className="text-muted-foreground">+1 (555) 123-4567</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">Call us Monday through Friday, 9 AM to 6 PM PST.</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-primary/20 to-primary/10 rounded-xl flex items-center justify-center">
-                      <MapPin className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">Office</h3>
-                      <p className="text-muted-foreground">San Francisco, CA</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    123 Innovation Drive
-                    <br />
-                    San Francisco, CA 94105
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-primary/20 to-primary/10 rounded-xl flex items-center justify-center">
-                      <Clock className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">Business Hours</h3>
-                      <p className="text-muted-foreground">9 AM - 6 PM PST</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Monday through Friday
-                    <br />
-                    We're closed on weekends and holidays.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+                </form>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="border-t mt-auto bg-muted/20">
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center">

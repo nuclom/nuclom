@@ -26,6 +26,8 @@ const CATEGORY_MAP: Record<MonitoringEventType, EventCategory> = {
   member_joined: 'accounts',
   invitation_accepted: 'accounts',
   beta_access_requested: 'accounts',
+  contact_inquiry: 'accounts',
+  support_request: 'accounts',
   // Billing events
   subscription_created: 'billing',
   subscription_upgraded: 'billing',
@@ -60,6 +62,8 @@ const EMOJI_MAP: Record<MonitoringEventType, string> = {
   member_joined: ':handshake:',
   invitation_accepted: ':white_check_mark:',
   beta_access_requested: ':raising_hand:',
+  contact_inquiry: ':briefcase:',
+  support_request: ':sos:',
   subscription_created: ':tada:',
   subscription_upgraded: ':arrow_up:',
   subscription_downgraded: ':arrow_down:',
@@ -87,6 +91,8 @@ const TITLE_MAP: Record<MonitoringEventType, string> = {
   member_joined: 'Member Joined Organization',
   invitation_accepted: 'Invitation Accepted',
   beta_access_requested: 'Beta Access Requested',
+  contact_inquiry: 'Sales Contact Inquiry',
+  support_request: 'Support Request',
   subscription_created: 'New Subscription',
   subscription_upgraded: 'Subscription Upgraded',
   subscription_downgraded: 'Subscription Downgraded',
@@ -315,6 +321,55 @@ export const buildEventBlocks = (event: MonitoringEvent, appUrl: string): KnownB
     fields.push({
       type: 'mrkdwn',
       text: `*Company:* ${data.company}`,
+    });
+  }
+
+  if (data.phone) {
+    fields.push({
+      type: 'mrkdwn',
+      text: `*Phone:* ${data.phone}`,
+    });
+  }
+
+  if (data.jobTitle) {
+    fields.push({
+      type: 'mrkdwn',
+      text: `*Job Title:* ${data.jobTitle}`,
+    });
+  }
+
+  if (data.teamSize) {
+    fields.push({
+      type: 'mrkdwn',
+      text: `*Team Size:* ${data.teamSize}`,
+    });
+  }
+
+  if (data.industry) {
+    fields.push({
+      type: 'mrkdwn',
+      text: `*Industry:* ${data.industry}`,
+    });
+  }
+
+  if (data.timeline) {
+    fields.push({
+      type: 'mrkdwn',
+      text: `*Timeline:* ${data.timeline}`,
+    });
+  }
+
+  if (data.subject) {
+    fields.push({
+      type: 'mrkdwn',
+      text: `*Subject:* ${data.subject}`,
+    });
+  }
+
+  if (data.message) {
+    fields.push({
+      type: 'mrkdwn',
+      text: `*Message:* ${data.message}`,
     });
   }
 

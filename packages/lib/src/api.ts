@@ -141,5 +141,5 @@ export const organizationApi = {
 
 export { ApiError };
 
-// Re-export Effect-based API for direct Effect usage
-export { organizationApiEffect, uploadVideoEffect, videoApiEffect } from './effect/client';
+// Note: For Effect-based API, import directly from:
+// import { organizationApiEffect, uploadVideoEffect, videoApiEffect } from '@nuclom/lib/effect/client';

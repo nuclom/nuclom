@@ -9,6 +9,8 @@ import {
   upgradeSubscription,
 } from '@nuclom/auth/client';
 import { logger } from '@nuclom/lib/client-logger';
+import type { Plan } from '@nuclom/lib/db/schema';
+import type { UsageSummary } from '@nuclom/lib/effect/services/billing-repository';
 import { cn } from '@nuclom/lib/utils';
 import { AlertTriangle, CheckCircle, CreditCard, Crown, Loader2, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -79,6 +81,8 @@ interface SubscriptionManagerProps {
   organizationSlug: string;
   currentUserId: string;
   isOwner: boolean;
+  plans: Plan[];
+  usageSummary: UsageSummary | null;
 }
 
 export function SubscriptionManager({
@@ -86,6 +90,8 @@ export function SubscriptionManager({
   organizationSlug,
   currentUserId: _currentUserId,
   isOwner,
+  plans,
+  usageSummary,
 }: SubscriptionManagerProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -376,9 +382,68 @@ export function SubscriptionManager({
           setUpgradeDialogOpen(false);
         }}
         isPending={isPending}
+        plans={plans}
+        usageSummary={usageSummary}
       />
     </div>
   );
+}
+
+// Helper to format bytes to human readable
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  if (bytes === -1) return 'Unlimited';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / k ** i).toFixed(1))} ${sizes[i]}`;
+}
+
+// Helper to format plan features from limits
+function formatPlanFeatures(plan: Plan): string[] {
+  const features: string[] = [];
+  const limits = plan.limits;
+
+  if (limits.storage !== -1) {
+    features.push(`${formatBytes(limits.storage)} storage/user`);
+  } else {
+    features.push('Unlimited storage');
+  }
+
+  if (limits.videos !== -1) {
+    features.push(`${limits.videos} videos/user/mo`);
+  } else {
+    features.push('Unlimited videos');
+  }
+
+  if (limits.members !== -1) {
+    features.push(`${limits.members} team members`);
+  } else {
+    features.push('Unlimited team members');
+  }
+
+  if (limits.transcriptionMinutes !== -1) {
+    features.push(`${limits.transcriptionMinutes} min AI transcription/user`);
+  } else {
+    features.push('Unlimited AI transcription');
+  }
+
+  // Add feature flags
+  if (plan.features.sso) {
+    features.push('SSO/SAML + Custom branding');
+  }
+
+  if (plan.features.prioritySupport) {
+    features.push('Priority support');
+  } else {
+    features.push('Email support');
+  }
+
+  if (plan.features.dedicatedSupport) {
+    features.push('Dedicated account manager');
+  }
+
+  return features;
 }
 
 // Upgrade Dialog Component
@@ -388,47 +453,39 @@ interface UpgradeDialogProps {
   currentPlan: SubscriptionPlan | null;
   onSelectPlan: (plan: SubscriptionPlan, annual: boolean) => void;
   isPending: boolean;
+  plans: Plan[];
+  usageSummary: UsageSummary | null;
 }
 
-function UpgradeDialog({ open, onOpenChange, currentPlan, onSelectPlan, isPending }: UpgradeDialogProps) {
+function UpgradeDialog({
+  open,
+  onOpenChange,
+  currentPlan,
+  onSelectPlan,
+  isPending,
+  plans,
+  usageSummary,
+}: UpgradeDialogProps) {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
 
-  // Plan pricing synced with pricing.md
-  const plans = [
-    {
-      name: 'scale' as const,
-      displayName: 'Scale',
-      monthlyPrice: 25,
-      yearlyPrice: 228, // $19/month annual (24% off)
-      features: [
-        '5GB storage/user',
-        '25 videos/user/mo',
-        '25 team members',
-        '60 min AI transcription/user',
-        'Email support',
-      ],
-    },
-    {
-      name: 'pro' as const,
-      displayName: 'Pro',
-      monthlyPrice: 45,
-      yearlyPrice: 468, // $39/month annual (13% off)
-      features: [
-        '25GB storage/user',
-        '100 videos/user/mo',
-        'Unlimited team members',
-        '300 min AI transcription/user',
-        'SSO/SAML + Custom branding',
-        'Priority support + Dedicated manager',
-      ],
-    },
-  ];
+  // Filter to active plans that are valid subscription plans and available for upgrade
+  const availablePlans = plans
+    .filter((p) => p.isActive && isSubscriptionPlan(p.id))
+    .filter((p) => {
+      if (!currentPlan) return true; // Show all plans if no active subscription
+      if (currentPlan === 'scale') return p.id === 'pro'; // Only show Pro for Scale users
+      return false; // Pro users can't upgrade further within the app
+    })
+    .sort((a, b) => a.sortOrder - b.sortOrder);
 
-  const availablePlans = plans.filter((p) => {
-    if (!currentPlan) return true; // Show all plans if no active subscription
-    if (currentPlan === 'scale') return p.name === 'pro'; // Only show Pro for Scale users
-    return false; // Pro users can't upgrade further within the app
-  });
+  // Calculate yearly savings percentage
+  const getYearlySavings = (plan: Plan): number => {
+    if (!plan.priceYearly || plan.priceMonthly === 0) return 0;
+    const monthlyTotal = plan.priceMonthly * 12;
+    return Math.round(((monthlyTotal - plan.priceYearly) / monthlyTotal) * 100);
+  };
+
+  const maxSavings = Math.max(...availablePlans.map(getYearlySavings));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -437,6 +494,31 @@ function UpgradeDialog({ open, onOpenChange, currentPlan, onSelectPlan, isPendin
           <DialogTitle>Upgrade Your Plan</DialogTitle>
           <DialogDescription>Choose the plan that best fits your needs</DialogDescription>
         </DialogHeader>
+
+        {/* Current Usage Summary */}
+        {usageSummary && (
+          <div className="rounded-lg border bg-muted/50 p-4">
+            <p className="mb-2 text-sm font-medium">Your Current Usage</p>
+            <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
+              <div>
+                <span className="text-muted-foreground">Storage</span>
+                <p className="font-medium">{formatBytes(usageSummary.storageUsed)}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Videos</span>
+                <p className="font-medium">{usageSummary.videosUploaded}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Bandwidth</span>
+                <p className="font-medium">{formatBytes(usageSummary.bandwidthUsed)}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">AI Requests</span>
+                <p className="font-medium">{usageSummary.aiRequests}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Billing Period Toggle */}
         <div className="flex justify-center gap-2 py-4">
@@ -453,63 +535,70 @@ function UpgradeDialog({ open, onOpenChange, currentPlan, onSelectPlan, isPendin
             onClick={() => setBillingPeriod('yearly')}
           >
             Yearly
-            <Badge variant="secondary" className="ml-2">
-              Save 24%
-            </Badge>
+            {maxSavings > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                Save {maxSavings}%
+              </Badge>
+            )}
           </Button>
         </div>
 
         {/* Plan Cards */}
         <div className="grid gap-4 md:grid-cols-2">
-          {availablePlans.map((plan) => (
-            <Card key={plan.name} className={cn('relative', plan.name === 'pro' && 'border-primary')}>
-              {plan.name === 'pro' && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-primary">Most Popular</Badge>
-                </div>
-              )}
-              <CardHeader>
-                <CardTitle>{plan.displayName}</CardTitle>
-                <CardDescription>
-                  <span className="text-3xl font-bold">
-                    ${billingPeriod === 'monthly' ? plan.monthlyPrice : Math.round(plan.yearlyPrice / 12)}
-                  </span>
-                  <span className="text-muted-foreground">/month</span>
-                  {billingPeriod === 'yearly' && (
-                    <span className="block text-sm text-muted-foreground">
-                      Billed annually (${plan.yearlyPrice}/year)
+          {availablePlans.map((plan) => {
+            const monthlyPrice = plan.priceMonthly / 100; // Convert cents to dollars
+            const yearlyPrice = (plan.priceYearly ?? plan.priceMonthly * 12) / 100;
+            const yearlyMonthlyPrice = Math.round(yearlyPrice / 12);
+            const features = formatPlanFeatures(plan);
+
+            return (
+              <Card key={plan.id} className={cn('relative', plan.id === 'pro' && 'border-primary')}>
+                {plan.id === 'pro' && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <Badge className="bg-primary">Most Popular</Badge>
+                  </div>
+                )}
+                <CardHeader>
+                  <CardTitle>{plan.name}</CardTitle>
+                  <CardDescription>
+                    <span className="text-3xl font-bold">
+                      ${billingPeriod === 'monthly' ? monthlyPrice : yearlyMonthlyPrice}
                     </span>
-                  )}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button
-                  className="w-full"
-                  onClick={() => onSelectPlan(plan.name, billingPeriod === 'yearly')}
-                  disabled={isPending}
-                >
-                  {isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>Upgrade to {plan.displayName}</>
-                  )}
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+                    <span className="text-muted-foreground">/month</span>
+                    {billingPeriod === 'yearly' && (
+                      <span className="block text-sm text-muted-foreground">Billed annually (${yearlyPrice}/year)</span>
+                    )}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {features.map((feature) => (
+                      <li key={feature} className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button
+                    className="w-full"
+                    onClick={() => onSelectPlan(plan.id as SubscriptionPlan, billingPeriod === 'yearly')}
+                    disabled={isPending}
+                  >
+                    {isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>Upgrade to {plan.name}</>
+                    )}
+                  </Button>
+                </CardFooter>
+              </Card>
+            );
+          })}
         </div>
 
         <DialogFooter>
