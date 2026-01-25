@@ -1,6 +1,6 @@
 import { Auth, createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
 import { aiTopics, decisions, knowledgeNodes } from '@nuclom/lib/db/schema';
-import { DatabaseError, UnauthorizedError } from '@nuclom/lib/effect';
+import { DatabaseError, UnauthorizedError } from '@nuclom/lib/effect/errors';
 import { Database } from '@nuclom/lib/effect/services/database';
 import { validateQueryParams } from '@nuclom/lib/validation';
 import { and, count, desc, eq, gte } from 'drizzle-orm';

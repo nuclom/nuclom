@@ -9,7 +9,8 @@
 
 import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
 import type { TranscriptSegment } from '@nuclom/lib/db/schema';
-import { ValidationError, VideoRepository } from '@nuclom/lib/effect';
+import { ValidationError } from '@nuclom/lib/effect/errors';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
 

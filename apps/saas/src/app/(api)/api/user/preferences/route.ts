@@ -1,6 +1,6 @@
 import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
 import { userPreferences } from '@nuclom/lib/db/schema';
-import { DatabaseError } from '@nuclom/lib/effect';
+import { DatabaseError } from '@nuclom/lib/effect/errors';
 import { Auth } from '@nuclom/lib/effect/services/auth';
 import { Database } from '@nuclom/lib/effect/services/database';
 import { safeParse } from '@nuclom/lib/validation';

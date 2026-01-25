@@ -23,6 +23,8 @@
     "./effect/services/slack-monitoring/*": "./src/effect/services/slack-monitoring/*.ts",
     "./effect/services/knowledge": "./src/effect/services/knowledge/index.ts",
     "./effect/services/knowledge/*": "./src/effect/services/knowledge/*.ts",
+    "./effect/services/search": "./src/effect/services/search/index.ts",
+    "./effect/services/search/*": "./src/effect/services/search/*.ts",
     "./env/*": "./src/env/*.ts",
     "./validation": "./src/validation/index.ts",
     "./validation/*": "./src/validation/*.ts",

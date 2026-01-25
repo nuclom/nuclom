@@ -13,13 +13,13 @@ import {
   handleEffectExitWithStatus,
   resolveParams,
 } from '@nuclom/lib/api-handler';
-import { OrganizationRepository } from '@nuclom/lib/effect';
 import {
   ContentRepository,
   deleteContentSource,
   getContentSource,
   updateContentSource,
 } from '@nuclom/lib/effect/services/content';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';

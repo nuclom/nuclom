@@ -5,7 +5,7 @@ import {
   runPublicApiEffect,
 } from '@nuclom/lib/api-handler';
 import { videos, videoViews } from '@nuclom/lib/db/schema';
-import { DatabaseError, NotFoundError, ValidationError } from '@nuclom/lib/effect';
+import { DatabaseError, NotFoundError, ValidationError } from '@nuclom/lib/effect/errors';
 import { Auth } from '@nuclom/lib/effect/services/auth';
 import { Database } from '@nuclom/lib/effect/services/database';
 import { validateRequestBody } from '@nuclom/lib/validation';

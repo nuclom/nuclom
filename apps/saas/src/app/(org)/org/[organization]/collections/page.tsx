@@ -1,6 +1,6 @@
 import { auth } from '@nuclom/lib/auth';
 import type { Organization } from '@nuclom/lib/db/schema';
-import { getCachedCollections, getCachedOrganizationBySlug } from '@nuclom/lib/effect';
+import { getCollections, getOrganizationBySlug } from '@nuclom/lib/effect/server';
 import { Link } from '@vercel/microfrontends/next/client';
 import { Folders, ListVideo, Plus } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -123,7 +123,7 @@ interface CollectionsContentProps {
 }
 
 async function CollectionsContent({ organizationId, organizationSlug }: CollectionsContentProps) {
-  const result = await getCachedCollections(organizationId);
+  const result = await getCollections(organizationId);
   const collections = result.data;
 
   if (collections.length === 0) {
@@ -186,7 +186,7 @@ async function CollectionsLoader({ params }: { params: Promise<{ organization: s
   // Get organization by slug using cached Effect query
   let organization: Organization;
   try {
-    organization = await getCachedOrganizationBySlug(organizationSlug);
+    organization = await getOrganizationBySlug(organizationSlug);
   } catch {
     notFound();
   }

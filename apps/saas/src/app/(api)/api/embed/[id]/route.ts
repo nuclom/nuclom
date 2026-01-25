@@ -4,7 +4,10 @@ import {
   handleEffectExitWithOptions,
   runPublicApiEffect,
 } from '@nuclom/lib/api-handler';
-import { NotFoundError, Storage, VideoRepository, VideoShareLinksRepository } from '@nuclom/lib/effect';
+import { NotFoundError } from '@nuclom/lib/effect/errors';
+import { Storage } from '@nuclom/lib/effect/services/storage';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
+import { VideoShareLinksRepository } from '@nuclom/lib/effect/services/video-share-links-repository';
 import { Effect, Option } from 'effect';
 import { connection, type NextRequest, NextResponse } from 'next/server';
 

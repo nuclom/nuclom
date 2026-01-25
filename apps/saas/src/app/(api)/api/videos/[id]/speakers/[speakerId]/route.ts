@@ -7,7 +7,8 @@
 
 import { handleEffectExit, runPublicApiEffect } from '@nuclom/lib/api-handler';
 import { normalizeOne } from '@nuclom/lib/db/relations';
-import { SpeakerRepository, VideoRepository } from '@nuclom/lib/effect';
+import { SpeakerRepository } from '@nuclom/lib/effect/services/speaker-repository';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 

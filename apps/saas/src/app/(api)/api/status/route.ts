@@ -1,6 +1,6 @@
 import { createPublicLayer } from '@nuclom/lib/api-handler';
 import { type HealthCheckService, type HealthCheckStatus, healthChecks } from '@nuclom/lib/db/schema';
-import { DatabaseError } from '@nuclom/lib/effect';
+import { DatabaseError } from '@nuclom/lib/effect/errors';
 import { Database, type DrizzleDB } from '@nuclom/lib/effect/services/database';
 import { logger } from '@nuclom/lib/logger';
 import { sql } from 'drizzle-orm';

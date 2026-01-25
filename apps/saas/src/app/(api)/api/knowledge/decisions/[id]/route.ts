@@ -1,6 +1,6 @@
 import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
-import { KnowledgeGraphRepository } from '@nuclom/lib/effect';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { KnowledgeGraphRepository } from '@nuclom/lib/effect/services/knowledge-graph-repository';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';

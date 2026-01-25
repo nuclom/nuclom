@@ -1,8 +1,10 @@
 import { createPublicLayer, mapErrorToApiResponse } from '@nuclom/lib/api-handler';
-import { MissingFieldError, ValidationError, VideoProcessor, VideoRepository } from '@nuclom/lib/effect';
-import { syncNewVideoToContent } from '@nuclom/lib/effect/services';
+import { MissingFieldError, ValidationError } from '@nuclom/lib/effect/errors';
 import { trackVideoUpload } from '@nuclom/lib/effect/services/billing-middleware';
 import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';
+import { syncNewVideoToContent } from '@nuclom/lib/effect/services/content';
+import { VideoProcessor } from '@nuclom/lib/effect/services/video-processor';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
 import { logger } from '@nuclom/lib/logger';
 import type { ApiResponse } from '@nuclom/lib/types';
 import { validateFormData } from '@nuclom/lib/validation';

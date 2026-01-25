@@ -1,6 +1,6 @@
 import { auth } from '@nuclom/lib/auth';
 import type { Organization } from '@nuclom/lib/db/schema';
-import { getCachedOrganizationBySlug } from '@nuclom/lib/effect';
+import { getOrganizationBySlug } from '@nuclom/lib/effect/server';
 import { History } from 'lucide-react';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
@@ -65,7 +65,7 @@ async function HistoryLoader({ params }: { params: Promise<{ organization: strin
   // Get organization by slug using cached Effect query
   let _organization: Organization;
   try {
-    _organization = await getCachedOrganizationBySlug(organizationSlug);
+    _organization = await getOrganizationBySlug(organizationSlug);
   } catch {
     notFound();
   }

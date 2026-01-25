@@ -1,5 +1,5 @@
 import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
-import { VideoRepository } from '@nuclom/lib/effect';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 

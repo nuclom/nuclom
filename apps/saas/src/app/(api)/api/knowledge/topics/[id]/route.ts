@@ -13,8 +13,8 @@ import {
   handleEffectExitWithStatus,
   resolveParams,
 } from '@nuclom/lib/api-handler';
-import { OrganizationRepository } from '@nuclom/lib/effect';
 import { getTopicCluster, TopicCluster } from '@nuclom/lib/effect/services/knowledge';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';

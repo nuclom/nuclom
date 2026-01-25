@@ -5,8 +5,9 @@
  */
 
 import { Auth, createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
-import { OrganizationRepository, ValidationError } from '@nuclom/lib/effect';
+import { ValidationError } from '@nuclom/lib/effect/errors';
 import { Discovery } from '@nuclom/lib/effect/services/discovery';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 

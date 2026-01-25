@@ -6,8 +6,10 @@ import {
   handleEffectExitWithStatus,
   Storage,
 } from '@nuclom/lib/api-handler';
-import { ClipRepository, OrganizationRepository, ValidationError } from '@nuclom/lib/effect';
+import { ValidationError } from '@nuclom/lib/effect/errors';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { ClipRepository } from '@nuclom/lib/effect/services/clip-repository';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { validateQueryParams, validateRequestBody } from '@nuclom/lib/validation';
 import { CreateHighlightReelSchema, PaginationSchema } from '@nuclom/lib/validation/schemas';
 import { Effect, Option } from 'effect';

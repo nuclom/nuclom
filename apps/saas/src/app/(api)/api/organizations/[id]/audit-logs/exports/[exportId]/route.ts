@@ -1,6 +1,6 @@
 import { Auth, handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
 import { AuditLogger } from '@nuclom/lib/audit-log';
-import { OrganizationRepository } from '@nuclom/lib/effect';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 

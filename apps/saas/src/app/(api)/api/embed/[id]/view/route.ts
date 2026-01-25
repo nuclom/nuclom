@@ -1,7 +1,8 @@
 import { createPublicLayer } from '@nuclom/lib/api-handler';
 import { videoViews } from '@nuclom/lib/db/schema';
-import { VideoRepository, VideoShareLinksRepository } from '@nuclom/lib/effect';
 import { Database } from '@nuclom/lib/effect/services/database';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
+import { VideoShareLinksRepository } from '@nuclom/lib/effect/services/video-share-links-repository';
 import { logger } from '@nuclom/lib/logger';
 import { Effect, Option } from 'effect';
 import { connection, type NextRequest, NextResponse } from 'next/server';

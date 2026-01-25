@@ -1,7 +1,7 @@
 import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
 import { videos } from '@nuclom/lib/db/schema';
-import { ClipRepository, NotFoundError } from '@nuclom/lib/effect';
-import { DatabaseError } from '@nuclom/lib/effect/errors';
+import { DatabaseError, NotFoundError } from '@nuclom/lib/effect/errors';
+import { ClipRepository } from '@nuclom/lib/effect/services/clip-repository';
 import { Database } from '@nuclom/lib/effect/services/database';
 import { eq } from 'drizzle-orm';
 import { Effect } from 'effect';

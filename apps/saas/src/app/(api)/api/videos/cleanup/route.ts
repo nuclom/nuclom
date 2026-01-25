@@ -1,6 +1,6 @@
 import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
-import { VideoRepository } from '@nuclom/lib/effect';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
 import { env } from '@nuclom/lib/env/server';
 import type { ApiResponse } from '@nuclom/lib/types';
 import { Effect } from 'effect';

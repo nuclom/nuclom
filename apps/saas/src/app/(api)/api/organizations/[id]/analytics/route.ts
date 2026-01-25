@@ -1,5 +1,6 @@
 import { Auth, generatePresignedThumbnailUrl, handleEffectExit, runApiEffect, Storage } from '@nuclom/lib/api-handler';
-import { OrganizationRepository, VideoAnalyticsRepository } from '@nuclom/lib/effect';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
+import { VideoAnalyticsRepository } from '@nuclom/lib/effect/services/video-analytics-repository';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 

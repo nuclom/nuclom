@@ -6,8 +6,8 @@ import {
   handleEffectExit,
   Storage,
 } from '@nuclom/lib/api-handler';
-import { ClipRepository } from '@nuclom/lib/effect';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { ClipRepository } from '@nuclom/lib/effect/services/clip-repository';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { UpdateClipSchema } from '@nuclom/lib/validation/schemas';
 import { Effect } from 'effect';

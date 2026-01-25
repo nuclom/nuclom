@@ -1,5 +1,5 @@
 import { handleEffectExit, runPublicApiEffect } from '@nuclom/lib/api-handler';
-import { OrganizationRepository } from '@nuclom/lib/effect';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 

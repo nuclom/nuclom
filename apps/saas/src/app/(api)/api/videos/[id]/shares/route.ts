@@ -9,7 +9,7 @@
  */
 
 import { Auth, createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@nuclom/lib/api-handler';
-import { ForbiddenError, ValidationError } from '@nuclom/lib/effect';
+import { ForbiddenError, ValidationError } from '@nuclom/lib/effect/errors';
 import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
 import { VideoSharesRepository } from '@nuclom/lib/effect/services/video-shares-repository';
 import type { ApiResponse } from '@nuclom/lib/types';

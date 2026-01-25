@@ -1,9 +1,9 @@
 import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
 import type { ActivityType } from '@nuclom/lib/db/schema';
 import { activityTypeEnum } from '@nuclom/lib/db/schema/enums';
-import { OrganizationRepository } from '@nuclom/lib/effect';
 import { ActivityFeedRepository } from '@nuclom/lib/effect/services/activity-feed-repository';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { Effect, Option } from 'effect';
 import type { NextRequest } from 'next/server';
 import { connection } from 'next/server';

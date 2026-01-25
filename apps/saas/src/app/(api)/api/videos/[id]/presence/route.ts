@@ -1,7 +1,8 @@
 import { handleEffectExit, handleEffectExitWithStatus, runApiEffect } from '@nuclom/lib/api-handler';
-import { ValidationError, VideoRepository } from '@nuclom/lib/effect';
+import { ValidationError } from '@nuclom/lib/effect/errors';
 import { Auth } from '@nuclom/lib/effect/services/auth';
 import { Presence } from '@nuclom/lib/effect/services/presence';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
 import { validateOptional } from '@nuclom/lib/validation';
 import { Effect, Option, Schema } from 'effect';
 import type { NextRequest } from 'next/server';

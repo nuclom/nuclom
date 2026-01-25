@@ -1,6 +1,7 @@
 import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
-import { MissingFieldError, SearchRepository } from '@nuclom/lib/effect';
+import { MissingFieldError } from '@nuclom/lib/effect/errors';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { SearchRepository } from '@nuclom/lib/effect/services/search-repository';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';

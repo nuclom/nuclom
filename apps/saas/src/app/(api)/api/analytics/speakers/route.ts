@@ -9,7 +9,7 @@ import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
 import { normalizeOne } from '@nuclom/lib/db/relations';
 import { speakerProfiles, videoSpeakers } from '@nuclom/lib/db/schema';
-import { DatabaseError } from '@nuclom/lib/effect';
+import { DatabaseError } from '@nuclom/lib/effect/errors';
 import { Database } from '@nuclom/lib/effect/services/database';
 import { desc, eq } from 'drizzle-orm';
 import { Effect } from 'effect';

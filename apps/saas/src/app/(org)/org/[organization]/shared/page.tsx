@@ -1,6 +1,6 @@
 import { auth } from '@nuclom/lib/auth';
 import type { Organization } from '@nuclom/lib/db/schema';
-import { getCachedOrganizationBySlug, getCachedVideosSharedByOthers } from '@nuclom/lib/effect';
+import { getOrganizationBySlug, getVideosSharedByOthers } from '@nuclom/lib/effect/server';
 import { Share2, VideoOff } from 'lucide-react';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
@@ -64,7 +64,7 @@ interface SharedVideosContentProps {
 }
 
 async function SharedVideosContent({ userId, organizationId, organizationSlug }: SharedVideosContentProps) {
-  const result = await getCachedVideosSharedByOthers(userId, organizationId);
+  const result = await getVideosSharedByOthers(userId, organizationId);
   const videos = result.data;
 
   if (videos.length === 0) {
@@ -98,7 +98,7 @@ async function SharedVideosLoader({ params }: { params: Promise<{ organization: 
   // Get organization by slug using cached Effect query
   let organization: Organization;
   try {
-    organization = await getCachedOrganizationBySlug(organizationSlug);
+    organization = await getOrganizationBySlug(organizationSlug);
   } catch {
     notFound();
   }

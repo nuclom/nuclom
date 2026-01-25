@@ -7,7 +7,9 @@
 
 import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
 import { normalizeOne } from '@nuclom/lib/db/relations';
-import { DatabaseError, NotFoundError, SpeakerRepository, VideoRepository } from '@nuclom/lib/effect';
+import { DatabaseError, NotFoundError } from '@nuclom/lib/effect/errors';
+import { SpeakerRepository } from '@nuclom/lib/effect/services/speaker-repository';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';

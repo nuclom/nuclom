@@ -1,6 +1,6 @@
 import { Auth, createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
 import { videoShareLinks } from '@nuclom/lib/db/schema';
-import { DatabaseError, NotFoundError } from '@nuclom/lib/effect';
+import { DatabaseError, NotFoundError } from '@nuclom/lib/effect/errors';
 import { Database } from '@nuclom/lib/effect/services/database';
 import type { ApiResponse } from '@nuclom/lib/types';
 import { and, eq } from 'drizzle-orm';

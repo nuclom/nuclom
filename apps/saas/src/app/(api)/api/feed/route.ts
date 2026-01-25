@@ -10,9 +10,10 @@
  */
 
 import { Auth, createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
-import { KnowledgeGraphRepository, OrganizationRepository } from '@nuclom/lib/effect';
 import { ContentRepository } from '@nuclom/lib/effect/services/content';
 import { TopicCluster } from '@nuclom/lib/effect/services/knowledge';
+import { KnowledgeGraphRepository } from '@nuclom/lib/effect/services/knowledge-graph-repository';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { validateQueryParams } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';

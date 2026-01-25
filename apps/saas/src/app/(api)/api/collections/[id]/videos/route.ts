@@ -5,7 +5,7 @@ import {
   handleEffectExitWithStatus,
   Storage,
 } from '@nuclom/lib/api-handler';
-import { MissingFieldError } from '@nuclom/lib/effect';
+import { MissingFieldError } from '@nuclom/lib/effect/errors';
 import { Auth } from '@nuclom/lib/effect/services/auth';
 import { CollectionRepository } from '@nuclom/lib/effect/services/collection-repository';
 import { validateRequestBody } from '@nuclom/lib/validation';

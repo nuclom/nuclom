@@ -6,9 +6,11 @@ import {
   runApiEffect,
   Storage,
 } from '@nuclom/lib/api-handler';
-import { ForbiddenError, revalidateVideo, ValidationError, VideoRepository } from '@nuclom/lib/effect';
+import { ForbiddenError, ValidationError } from '@nuclom/lib/effect/errors';
+import { revalidateVideo } from '@nuclom/lib/effect/server';
 import { releaseVideoCount } from '@nuclom/lib/effect/services/billing-middleware';
 import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
 import type { UpdateVideoInput } from '@nuclom/lib/effect/services/video-repository.types';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Option, Schema } from 'effect';

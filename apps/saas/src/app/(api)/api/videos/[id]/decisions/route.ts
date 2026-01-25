@@ -1,7 +1,8 @@
 import { handleEffectExitWithOptions, runApiEffect } from '@nuclom/lib/api-handler';
 import { CachePresets, getCacheControlHeader } from '@nuclom/lib/api-utils';
-import { KnowledgeGraphRepository, VideoRepository } from '@nuclom/lib/effect';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { KnowledgeGraphRepository } from '@nuclom/lib/effect/services/knowledge-graph-repository';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 
