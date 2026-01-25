@@ -1,12 +1,12 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Progress } from '@nuclom/ui/progress';
 import { Link } from '@vercel/microfrontends/next/client';
 import { Check, ChevronRight, Settings, Upload, Users, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 
 interface ChecklistItem {
   id: string;

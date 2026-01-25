@@ -1,8 +1,8 @@
 'use client';
 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Progress } from '@nuclom/ui/progress';
 import { BarChart3, CheckCircle2, Clock, Eye, Lightbulb, ListTodo, Target, TrendingUp, Video } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 
 interface EffectivenessMetrics {
   totalMeetings: number;

@@ -8,9 +8,9 @@
  */
 
 import { cn } from '@nuclom/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@nuclom/ui/avatar';
 import { Eye } from 'lucide-react';
 import { useMemo } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useVideoPresence } from '@/hooks/use-video-presence';
 
 // =============================================================================

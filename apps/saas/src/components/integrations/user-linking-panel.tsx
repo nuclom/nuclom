@@ -9,16 +9,16 @@
 
 import { logger } from '@nuclom/lib/client-logger';
 import { cn } from '@nuclom/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@nuclom/ui/avatar';
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@nuclom/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@nuclom/ui/popover';
+import { ScrollArea } from '@nuclom/ui/scroll-area';
+import { Skeleton } from '@nuclom/ui/skeleton';
 import { AlertCircle, Check, ChevronDown, Link2, Link2Off, Loader2, User } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import useSWR, { mutate } from 'swr';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Skeleton } from '@/components/ui/skeleton';
 
 // =============================================================================
 // Types

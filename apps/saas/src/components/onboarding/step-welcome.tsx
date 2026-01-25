@@ -1,8 +1,8 @@
 'use client';
 
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent } from '@nuclom/ui/card';
 import { Building2, Rocket, Sparkles, Users, Video } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 
 interface StepWelcomeProps {
   userName?: string;

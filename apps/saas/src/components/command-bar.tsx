@@ -3,10 +3,7 @@
 import { logger } from '@nuclom/lib/client-logger';
 import type { VideoWithAuthor } from '@nuclom/lib/types';
 import { cn } from '@nuclom/lib/utils';
-import { FolderKanban, Home, Loader2, Plus, Search, SearchIcon, Settings, Users, Video } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import * as React from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@nuclom/ui/button';
 import {
   CommandDialog,
   CommandEmpty,
@@ -15,7 +12,10 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@/components/ui/command';
+} from '@nuclom/ui/command';
+import { FolderKanban, Home, Loader2, Plus, Search, SearchIcon, Settings, Users, Video } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import * as React from 'react';
 
 interface CommandBarProps {
   organization: string;

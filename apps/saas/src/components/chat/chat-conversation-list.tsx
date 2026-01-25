@@ -1,16 +1,11 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Button } from '@nuclom/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@nuclom/ui/dropdown-menu';
+import { ScrollArea } from '@nuclom/ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
 import { Edit2, MessageSquare, MoreVertical, Plus, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 export interface Conversation {
   id: string;

@@ -1,8 +1,8 @@
 'use client';
 
+import { Button } from '@nuclom/ui/button';
 import { Link } from '@vercel/microfrontends/next/client';
 import { Upload } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 interface DashboardHeroProps {
   organization: string;

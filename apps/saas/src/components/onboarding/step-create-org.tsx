@@ -1,10 +1,10 @@
 'use client';
 
+import { Button } from '@nuclom/ui/button';
+import { Input } from '@nuclom/ui/input';
+import { Label } from '@nuclom/ui/label';
 import { ArrowRight, Building2, Loader2 } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 
 interface StepCreateOrgProps {
   onNext: (data: { name: string; slug: string }) => void;

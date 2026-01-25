@@ -1,6 +1,10 @@
 'use client';
 
 import { logger } from '@nuclom/lib/client-logger';
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { ScrollArea } from '@nuclom/ui/scroll-area';
 import { Link } from '@vercel/microfrontends/next/client';
 import {
   addDays,
@@ -28,10 +32,6 @@ import {
 } from 'lucide-react';
 import type * as React from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 
 interface Integration {

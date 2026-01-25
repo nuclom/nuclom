@@ -3,10 +3,7 @@
 import { logger } from '@nuclom/lib/client-logger';
 import type { SearchFilters } from '@nuclom/lib/db/schema';
 import type { SavedSearchWithUser } from '@nuclom/lib/types';
-import { Bookmark, BookmarkPlus, Loader2, MoreHorizontal, Pencil, Search, Trash2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@nuclom/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -15,15 +12,13 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from '@nuclom/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@nuclom/ui/dropdown-menu';
+import { Input } from '@nuclom/ui/input';
+import { Label } from '@nuclom/ui/label';
+import { Bookmark, BookmarkPlus, Loader2, MoreHorizontal, Pencil, Search, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
 
 interface SavedSearchesProps {
   savedSearches: SavedSearchWithUser[];

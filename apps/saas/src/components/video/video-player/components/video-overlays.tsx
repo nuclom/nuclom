@@ -1,7 +1,7 @@
 'use client';
 
+import { Button } from '@nuclom/ui/button';
 import { AlertCircle, Loader2, Play, Repeat } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import type { VideoChapter } from '../types';
 
 interface LoadingOverlayProps {

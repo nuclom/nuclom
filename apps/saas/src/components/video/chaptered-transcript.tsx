@@ -15,10 +15,10 @@ import type { TranscriptSegment } from '@nuclom/lib/db/schema';
 import { formatTime } from '@nuclom/lib/format-utils';
 import { findSegmentIndexByTime } from '@nuclom/lib/subtitles';
 import { cn } from '@nuclom/lib/utils';
+import { Button } from '@nuclom/ui/button';
+import { Input } from '@nuclom/ui/input';
 import { ChevronDown, ChevronRight, Search, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import type { VideoChapter } from './video-player/types';
 
 // =============================================================================

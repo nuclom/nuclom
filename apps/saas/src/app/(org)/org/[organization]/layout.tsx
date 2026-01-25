@@ -1,5 +1,6 @@
 import { db } from '@nuclom/lib/db';
 import { organizations } from '@nuclom/lib/db/schema';
+import { Skeleton } from '@nuclom/ui/skeleton';
 import { eq } from 'drizzle-orm';
 import type React from 'react';
 import { Suspense } from 'react';
@@ -8,7 +9,6 @@ import { MobileSidebar } from '@/components/dashboard/mobile-sidebar';
 import { SidebarNav } from '@/components/dashboard/sidebar-nav';
 import { KeyboardShortcutsDialog } from '@/components/keyboard-shortcuts-dialog';
 import { TopNav } from '@/components/top-nav';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface LayoutProps {
   children: React.ReactNode;

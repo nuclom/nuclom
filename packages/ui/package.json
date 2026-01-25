@@ -13,18 +13,13 @@
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
     "cmdk": "catalog:",
-    "embla-carousel-react": "catalog:",
-    "input-otp": "catalog:",
     "lucide-react": "catalog:",
     "next-themes": "catalog:",
     "radix-ui": "catalog:",
     "react-day-picker": "catalog:",
-    "react-hook-form": "catalog:",
     "react-resizable-panels": "catalog:",
-    "recharts": "catalog:",
     "sonner": "catalog:",
-    "tailwind-merge": "catalog:",
-    "vaul": "catalog:"
+    "tailwind-merge": "catalog:"
   },
   "devDependencies": {
     "@nuclom/config": "workspace:*",

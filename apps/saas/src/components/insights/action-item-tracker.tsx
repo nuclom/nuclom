@@ -1,11 +1,9 @@
 'use client';
 
-import { CheckCircle2, Circle, Clock, Filter, Loader2, Play, User, Video, XCircle } from 'lucide-react';
-import { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Checkbox } from '@nuclom/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,8 +11,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { ScrollArea } from '@/components/ui/scroll-area';
+} from '@nuclom/ui/dropdown-menu';
+import { ScrollArea } from '@nuclom/ui/scroll-area';
+import { CheckCircle2, Circle, Clock, Filter, Loader2, Play, User, Video, XCircle } from 'lucide-react';
+import { useState } from 'react';
 
 interface ActionItem {
   id: string;

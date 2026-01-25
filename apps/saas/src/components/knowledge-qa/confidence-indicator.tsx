@@ -1,8 +1,8 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@nuclom/ui/tooltip';
 import { AlertTriangle, CheckCircle2, HelpCircle } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ConfidenceIndicatorProps {
   confidence: number;

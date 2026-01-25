@@ -2,11 +2,11 @@
 
 import { logger } from '@nuclom/lib/client-logger';
 import type { SearchSuggestion } from '@nuclom/lib/types';
+import { Button } from '@nuclom/ui/button';
+import { Input } from '@nuclom/ui/input';
 import { Loader2, Search, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 
 interface SearchInputProps {
   organizationId: string;

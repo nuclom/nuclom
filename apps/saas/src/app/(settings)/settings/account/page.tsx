@@ -2,23 +2,16 @@
 
 import { authClient, useAuth } from '@nuclom/auth/client';
 import { logger } from '@nuclom/lib/client-logger';
+import { Alert, AlertDescription, AlertTitle } from '@nuclom/ui/alert';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@nuclom/ui/dialog';
+import { Input } from '@nuclom/ui/input';
+import { Label } from '@nuclom/ui/label';
 import { AlertTriangle, Download, Loader2, Mail, Trash2, UserX } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { RequireAuth } from '@/components/auth/auth-guard';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 
 function AccountContent() {

@@ -2,13 +2,8 @@
 
 import { authClient, useAuth } from '@nuclom/auth/client';
 import { logger } from '@nuclom/lib/client-logger';
-import { Link } from '@vercel/microfrontends/next/client';
-import { HelpCircle, Home, LogOut, Plus, Settings } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { NuclomLogo } from '@/components/nuclom-logo';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@nuclom/ui/avatar';
+import { Button } from '@nuclom/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +12,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@nuclom/ui/dropdown-menu';
+import { Link } from '@vercel/microfrontends/next/client';
+import { HelpCircle, Home, LogOut, Plus, Settings } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { NuclomLogo } from '@/components/nuclom-logo';
 import { CommandBar } from './command-bar';
 import { NotificationBell } from './notifications/notification-bell';
 import { OrganizationSwitcher } from './organization-switcher';

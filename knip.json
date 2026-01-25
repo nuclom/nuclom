@@ -14,7 +14,6 @@
         "src/**/*.test.tsx",
         "src/**/*.integration.test.ts",
         "src/test/**",
-        "src/components/ui/**",
         "src/app/.well-known/workflow/**"
       ],
       "next": {
@@ -34,7 +33,6 @@
         "@vercel/microfrontends",
         "server-only",
         "tailwindcss-animate",
-        "autoprefixer",
         "@next/env",
         "tsx",
         "tailwindcss",
@@ -59,7 +57,6 @@
         "@effect/sql",
         "@effect/sql-drizzle",
         "@effect/sql-pg",
-        "openai",
         "resend",
         "bash-tool",
         "@stripe/stripe-js"

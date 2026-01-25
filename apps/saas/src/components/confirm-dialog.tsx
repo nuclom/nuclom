@@ -1,7 +1,5 @@
 'use client';
 
-import { AlertTriangle, Loader2, Trash2 } from 'lucide-react';
-import { type ReactNode, useCallback, useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,9 +9,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from '@nuclom/ui/alert-dialog';
+import { Input } from '@nuclom/ui/input';
+import { Label } from '@nuclom/ui/label';
+import { AlertTriangle, Loader2, Trash2 } from 'lucide-react';
+import { type ReactNode, useCallback, useState } from 'react';
 
 export interface ConfirmDialogProps {
   open: boolean;

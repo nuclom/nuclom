@@ -1,10 +1,10 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Badge } from '@nuclom/ui/badge';
 import { Link } from '@vercel/microfrontends/next/client';
 import { Building, ClipboardList, CreditCard, Globe, Key, Lock, Plug, UserSquare2, Users } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { Badge } from '@/components/ui/badge';
 
 type NavItem = {
   href: string;

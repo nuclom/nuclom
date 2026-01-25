@@ -1,11 +1,11 @@
 import { auth } from '@nuclom/lib/auth';
 import type { Organization } from '@nuclom/lib/db/schema';
 import { getCachedOrganizationBySlug } from '@nuclom/lib/effect';
+import { Skeleton } from '@nuclom/ui/skeleton';
 import { Clock } from 'lucide-react';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
 
 // =============================================================================
 // Loading Skeleton Component

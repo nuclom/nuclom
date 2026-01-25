@@ -1,6 +1,9 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Button } from '@nuclom/ui/button';
+import { ScrollArea } from '@nuclom/ui/scroll-area';
+import { Separator } from '@nuclom/ui/separator';
 import { Link } from '@vercel/microfrontends/next/client';
 import {
   AlertTriangle,
@@ -24,9 +27,6 @@ import {
   Video,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 
 interface SidebarNavProps {
   organization: string;

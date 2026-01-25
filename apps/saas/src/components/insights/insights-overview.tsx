@@ -1,8 +1,8 @@
 'use client';
 
+import { Card, CardContent, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Progress } from '@nuclom/ui/progress';
 import { CheckCircle2, FileVideo, Lightbulb, ListTodo, TrendingDown, TrendingUp } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 
 interface InsightsOverviewData {
   totalVideosAnalyzed: number;

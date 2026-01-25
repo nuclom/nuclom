@@ -8,11 +8,11 @@
  */
 
 import { cn } from '@nuclom/lib/utils';
+import { Button } from '@nuclom/ui/button';
+import { ScrollArea } from '@nuclom/ui/scroll-area';
 import { AlertCircle, Check, Loader2, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { type NotionPageTreeNode, NotionTreeView } from './notion-tree-view';
 
 // =============================================================================

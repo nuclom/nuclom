@@ -2,6 +2,13 @@
 
 import { logger } from '@nuclom/lib/client-logger';
 import { formatFileSize } from '@nuclom/lib/format-utils';
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Checkbox } from '@nuclom/ui/checkbox';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@nuclom/ui/dialog';
+import { Input } from '@nuclom/ui/input';
+import { ScrollArea } from '@nuclom/ui/scroll-area';
+import { Skeleton } from '@nuclom/ui/skeleton';
 import { format, formatDistanceToNow } from 'date-fns';
 import {
   ArrowLeft,
@@ -19,20 +26,6 @@ import {
   X,
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 
 interface GoogleDriveFile {
