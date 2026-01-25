@@ -20,8 +20,8 @@ test.describe('Landing Page', () => {
   });
 
   test('should display hero section', async ({ page }) => {
-    // Hero headline: "Stop losing knowledge"
-    await expect(page.getByRole('heading', { name: /stop losing/i })).toBeVisible();
+    // Hero headline: "Stop losing knowledge" - use exact match to avoid matching "Ready to stop losing"
+    await expect(page.getByRole('heading', { name: /stop losing knowledge/i })).toBeVisible();
     // CTA button: "Start free"
     await expect(page.getByRole('link', { name: /start free/i }).first()).toBeVisible();
   });
@@ -126,7 +126,7 @@ test.describe('Landing Page - Mobile', () => {
     // Header should still be visible
     await expect(page.getByText('Nuclom').first()).toBeVisible();
 
-    // Hero content should be visible - "Stop losing knowledge"
-    await expect(page.getByRole('heading', { name: /stop losing/i })).toBeVisible();
+    // Hero content should be visible - "Stop losing knowledge" - use exact match to avoid matching "Ready to stop losing"
+    await expect(page.getByRole('heading', { name: /stop losing knowledge/i })).toBeVisible();
   });
 });
