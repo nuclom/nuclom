@@ -17,9 +17,42 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint-and-typecheck:
-    name: Lint & Type Check
+  changes:
+    name: Detect Changes
     runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+      tests: ${{ steps.filter.outputs.tests }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check for file changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            code:
+              - 'apps/**/*.{ts,tsx,js,jsx,json}'
+              - 'packages/**/*.{ts,tsx,js,jsx,json}'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'tsconfig*.json'
+              - 'biome.json'
+            tests:
+              - 'apps/**/*.{ts,tsx,js,jsx}'
+              - 'packages/**/*.{ts,tsx,js,jsx}'
+              - '**/*.test.{ts,tsx}'
+              - '**/*.spec.{ts,tsx}'
+              - 'vitest.config.*'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+
+  run-lint:
+    name: Run Lint & Type Check
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     timeout-minutes: 15
     steps:
       - name: Checkout repository
@@ -55,9 +88,11 @@ jobs:
         with:
           name: "Vercel - nuclom-saas: CI Checks"
 
-  unit-tests:
-    name: Unit Tests & Coverage
+  run-tests:
+    name: Run Unit Tests
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.tests == 'true'
     timeout-minutes: 20
     steps:
       - name: Checkout repository
@@ -90,3 +125,44 @@ jobs:
           name: coverage-report
           path: coverage/
           retention-days: 7
+
+  # Required check jobs - these always run and report success when their
+  # corresponding job is skipped or succeeds. Set these as required checks
+  # in branch protection rules.
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    needs: [changes, run-lint]
+    if: always()
+    steps:
+      - name: Check status
+        run: |
+          if [[ "${{ needs.changes.outputs.code }}" != "true" ]]; then
+            echo "✓ Skipped: No code changes detected"
+            exit 0
+          elif [[ "${{ needs.run-lint.result }}" == "success" ]]; then
+            echo "✓ Lint and type check passed"
+            exit 0
+          else
+            echo "✗ Lint and type check failed"
+            exit 1
+          fi
+
+  tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: [changes, run-tests]
+    if: always()
+    steps:
+      - name: Check status
+        run: |
+          if [[ "${{ needs.changes.outputs.tests }}" != "true" ]]; then
+            echo "✓ Skipped: No test-relevant changes detected"
+            exit 0
+          elif [[ "${{ needs.run-tests.result }}" == "success" ]]; then
+            echo "✓ Unit tests passed"
+            exit 0
+          else
+            echo "✗ Unit tests failed"
+            exit 1
+          fi
