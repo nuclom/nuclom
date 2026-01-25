@@ -48,6 +48,14 @@
               {
                 "group": ["@radix-ui/*"],
                 "message": "Use the unified 'radix-ui' package instead. Example: import { Dialog } from 'radix-ui'"
+              },
+              {
+                "group": ["@nuclom/lib/effect"],
+                "message": "Import directly from specific service files (e.g., @nuclom/lib/effect/services/video-repository) to reduce build memory usage."
+              },
+              {
+                "group": ["@nuclom/lib/effect/services"],
+                "message": "Import directly from specific service files (e.g., @nuclom/lib/effect/services/video-repository) to reduce build memory usage."
               }
             ]
           }
@@ -193,8 +201,6 @@
     {
       "includes": [
         "packages/lib/src/db/schema/index.ts",
-        "packages/lib/src/effect/index.ts",
-        "packages/lib/src/effect/services/index.ts",
         "packages/lib/src/effect/services/content/index.ts",
         "packages/lib/src/effect/services/content/github/index.ts",
         "packages/lib/src/effect/services/content/slack/index.ts",

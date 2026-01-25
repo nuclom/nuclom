@@ -12,8 +12,9 @@ import { Cause, type Context, Effect, Exit, Layer } from 'effect';
 import { NextResponse } from 'next/server';
 import { mapErrorToApiResponse } from './api-errors';
 import { auth } from './auth';
-import { AppLive, Storage } from './effect';
+import { AppLive } from './effect/runtime';
 import { Auth, makeAuthLayer } from './effect/services/auth';
+import { Storage } from './effect/services/storage';
 
 // =============================================================================
 // Types

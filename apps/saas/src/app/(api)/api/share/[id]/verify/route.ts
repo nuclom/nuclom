@@ -1,11 +1,6 @@
 import { handleEffectExit, runPublicApiEffect } from '@nuclom/lib/api-handler';
-import {
-  DatabaseError,
-  MissingFieldError,
-  NotFoundError,
-  ValidationError,
-  VideoShareLinksRepository,
-} from '@nuclom/lib/effect';
+import { DatabaseError, MissingFieldError, NotFoundError, ValidationError } from '@nuclom/lib/effect/errors';
+import { VideoShareLinksRepository } from '@nuclom/lib/effect/services/video-share-links-repository';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Option, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
