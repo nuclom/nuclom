@@ -21,19 +21,28 @@ test.describe('Settings Pages', () => {
       await page.waitForLoadState('domcontentloaded');
 
       // The page uses RequireAuth - wait for either profile content or auth required message
-      const profileTitle = page.getByText('Your Profile');
+      // Use heading role for "Your Profile" to avoid matching hidden sidebar elements on mobile
+      const profileTitle = page.getByRole('heading', { name: /your profile/i });
       const nameInput = page.getByLabel(/full name/i);
       const authRequired = page.getByText('Authentication Required');
 
-      // Wait for page to show meaningful content
-      await expect(profileTitle.or(nameInput).or(authRequired).first()).toBeVisible({ timeout: 5000 });
+      // Wait for page to show meaningful content - check each individually since .or().first()
+      // can match hidden elements on mobile
+      await Promise.race([
+        expect(profileTitle)
+          .toBeVisible({ timeout: 5000 })
+          .catch(() => {}),
+        expect(nameInput)
+          .toBeVisible({ timeout: 5000 })
+          .catch(() => {}),
+        expect(authRequired)
+          .toBeVisible({ timeout: 5000 })
+          .catch(() => {}),
+      ]);
 
       // Now check if we got profile content (auth working) or auth required (auth not working)
       const isAuthenticated =
-        (await profileTitle
-          .first()
-          .isVisible()
-          .catch(() => false)) || (await nameInput.isVisible().catch(() => false));
+        (await profileTitle.isVisible().catch(() => false)) || (await nameInput.isVisible().catch(() => false));
 
       // If authenticated, verify profile form elements exist
       if (isAuthenticated) {

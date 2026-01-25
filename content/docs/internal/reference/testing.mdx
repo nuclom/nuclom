@@ -17,8 +17,21 @@ icon: "flask"
 
 ### Current Status
 
-- **E2E Tests**: Configured with Playwright. Tests are located in the `e2e/` directory and run via GitHub Actions on every push/PR.
+- **E2E Tests**: Configured with Playwright. Tests are located in `tests/e2e/` and run via GitHub Actions when Vercel deployments complete.
 - **Unit/Integration Tests**: Configured with Vitest. Tests are located in `__tests__` directories or files with `.test.ts` suffix.
+
+### E2E Test Architecture
+
+The E2E test pipeline uses a two-workflow system optimized for Vercel's monorepo deployments:
+
+1. **`e2e-trigger.yml`**: Listens for Vercel deployment events via `repository_dispatch`:
+   - `vercel.deployment.success` - Deployment promoted to production
+   - `vercel.deployment.ready` - Preview deployment ready
+   - `vercel.deployment.skipped` - Deployment skipped (no changes affected project)
+
+2. **`e2e.yml`**: Runs the actual Playwright tests with sharding for parallel execution
+
+This architecture handles Vercel's "Skip Unaffected Projects" feature, which only deploys apps that have changes. The trigger workflow uses Turborepo's `--dry-run` to detect which apps are affected and only waits for those deployments.
 
 ## Running E2E Tests
 
@@ -363,58 +376,101 @@ describe("/api/videos", () => {
 
 ### Playwright Configuration
 
+The E2E tests use a multi-project configuration to test both apps across desktop and mobile viewports:
+
 ```typescript
-// playwright.config.ts
+// tests/e2e/playwright.config.ts
 import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: "./e2e",
+  testDir: ".",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "html",
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5001",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "on-first-retry",
   },
   projects: [
-    { name: "setup", testMatch: /.*\.setup\.ts/ },
+    // SaaS Application Tests
     {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
-      dependencies: ["setup"],
+      name: "saas-desktop",
+      testDir: "./saas",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: process.env.SAAS_BASE_URL ?? "http://localhost:5001",
+      },
     },
     {
-      name: "mobile-chrome",
-      use: { ...devices["Pixel 5"] },
-      dependencies: ["setup"],
+      name: "saas-mobile",
+      testDir: "./saas",
+      use: {
+        ...devices["Pixel 5"],
+        baseURL: process.env.SAAS_BASE_URL ?? "http://localhost:5001",
+      },
+    },
+    // Marketing Site Tests
+    {
+      name: "marketing-desktop",
+      testDir: "./marketing",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: process.env.MARKETING_BASE_URL ?? "http://localhost:3001",
+      },
+    },
+    {
+      name: "marketing-mobile",
+      testDir: "./marketing",
+      use: {
+        ...devices["Pixel 5"],
+        baseURL: process.env.MARKETING_BASE_URL ?? "http://localhost:3001",
+      },
     },
   ],
-  webServer: process.env.CI ? undefined : {
-    command: "pnpm dev",
-    url: "http://localhost:5001",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-  },
 });
 ```
+
+### Vercel Protection Bypass
+
+When testing against Vercel preview deployments with password protection enabled, provide the bypass secret:
+
+```bash
+VERCEL_AUTOMATION_BYPASS_SECRET=your-secret pnpm test:saas
+```
+
+The test fixtures automatically add the `x-vercel-protection-bypass` header when this environment variable is set.
 
 ### Test File Structure
 
 ```
-e2e/
-├── auth.setup.ts       # Authentication setup for tests
-├── fixtures.ts         # Test fixtures and utilities
-├── landing.spec.ts     # Landing page tests
-├── auth.spec.ts        # Authentication flow tests
-├── organization.spec.ts # Organization dashboard tests
-├── upload.spec.ts      # Video upload tests
-├── videos.spec.ts      # Video management tests
-├── settings.spec.ts    # Settings pages tests
-└── public-pages.spec.ts # Public pages tests
+tests/e2e/
+├── saas/                    # SaaS application tests
+│   ├── auth.spec.ts         # Authentication flow tests
+│   ├── landing.spec.ts      # Landing page tests
+│   ├── organization.spec.ts # Organization dashboard tests
+│   ├── upload.spec.ts       # Video upload tests
+│   ├── videos.spec.ts       # Video management tests
+│   └── settings.spec.ts     # Settings pages tests
+├── marketing/               # Marketing site tests
+│   ├── landing.spec.ts      # Marketing landing page
+│   └── public-pages.spec.ts # Public pages (docs, blog, etc.)
+├── playwright.config.ts     # Playwright configuration
+└── package.json             # E2E package dependencies
+```
+
+### Running E2E Tests Against Deployed URLs
+
+Tests can target specific deployment URLs:
+
+```bash
+# Run SaaS tests against a specific deployment
+SAAS_BASE_URL=https://nuclom-saas-xxx.vercel.app pnpm test:saas
+
+# Run Marketing tests against a specific deployment
+MARKETING_BASE_URL=https://nuclom-marketing-xxx.vercel.app pnpm test:marketing
 ```
 
 ### E2E Test Examples
@@ -624,6 +680,32 @@ export const options = {
 
 ## Best Practices
 
+### E2E Selector Strategy
+
+Use robust selectors that work across desktop and mobile viewports:
+
+```typescript
+// PREFERRED: Role-based selectors (most resilient)
+await page.getByRole('button', { name: /sign in/i }).click();
+await page.getByRole('link', { name: /create account/i }).click();
+
+// GOOD: Label-based selectors for form fields
+await page.getByLabel('Email').fill('test@example.com');
+await page.getByLabel('Password').fill('password123');
+
+// ACCEPTABLE: Test ID selectors for complex components
+await page.getByTestId('video-upload-dropzone').click();
+
+// AVOID: Text selectors that may match multiple elements or fail on mobile
+// ❌ await page.getByText(/private beta/i).click();  // May not find text in badges
+// ✅ await page.getByRole('button', { name: /request access/i }).click();
+```
+
+**Mobile-Specific Considerations:**
+- Text inside badges or decorative elements may have different DOM structures
+- Use role-based selectors which are more resilient to layout changes
+- Test with actual mobile device profiles (e.g., `devices["Pixel 5"]`)
+
 <Note>
 **Test Organization**
 1. Group related tests in describe blocks
@@ -653,55 +735,120 @@ export const options = {
 
 ### CI/CD Integration
 
+E2E tests run automatically when Vercel deployments complete. The pipeline uses sharding for parallel execution:
+
 ```yaml
-# .github/workflows/test.yml
-name: Test
+# .github/workflows/e2e.yml (simplified)
+name: E2E Tests
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      saas_url:
+        description: "SaaS deployment URL"
+        required: false
+      marketing_url:
+        description: "Marketing deployment URL"
+        required: false
+      test_saas:
+        description: "Whether to run SaaS tests"
+        default: "true"
+      test_marketing:
+        description: "Whether to run Marketing tests"
+        default: "true"
 
 jobs:
-  test:
+  e2e-tests:
+    name: Playwright (${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: nuclom_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "24"
           cache: "pnpm"
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
-      - name: Run unit tests
-        run: pnpm test
+      - name: Install Playwright browsers
+        run: pnpm --filter @nuclom/e2e exec playwright install chromium --with-deps
+
+      - name: Run SaaS E2E tests
+        if: inputs.test_saas == 'true'
+        run: pnpm test:saas --shard=${{ matrix.shard }}/3
+        working-directory: tests/e2e
         env:
-          TEST_DATABASE_URL: postgresql://postgres:test@localhost:5432/nuclom_test
+          SAAS_BASE_URL: ${{ inputs.saas_url }}
 
-      - name: Run E2E tests
-        run: pnpm test:e2e
-
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
+      - name: Run Marketing E2E tests
+        if: inputs.test_marketing == 'true'
+        run: pnpm test:marketing --shard=${{ matrix.shard }}/3
+        working-directory: tests/e2e
+        env:
+          MARKETING_BASE_URL: ${{ inputs.marketing_url }}
 ```
+
+### Vercel Deployment Integration
+
+The `e2e-trigger.yml` workflow coordinates E2E test execution with Vercel deployments:
+
+```yaml
+# .github/workflows/e2e-trigger.yml (simplified)
+on:
+  repository_dispatch:
+    types:
+      - "vercel.deployment.success"
+      - "vercel.deployment.ready"
+      - "vercel.deployment.skipped"
+
+jobs:
+  trigger-e2e:
+    steps:
+      - name: Detect affected apps with Turborepo
+        run: |
+          # Use turbo build --dry-run to detect affected packages
+          SAAS_DRY=$(pnpm turbo build --filter=nuclom-saas --dry-run=json)
+          MARKETING_DRY=$(pnpm turbo build --filter=nuclom-marketing --dry-run=json)
+          # ... determine which apps need testing
+
+      - name: Check deployments and trigger E2E
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Wait for all expected deployments
+            // Trigger e2e.yml with deployment URLs
+            await github.rest.actions.createWorkflowDispatch({
+              workflow_id: 'e2e.yml',
+              inputs: {
+                saas_url: saasUrl,
+                marketing_url: marketingUrl,
+                test_saas: String(shouldTestSaas),
+                test_marketing: String(shouldTestMarketing),
+              }
+            });
+```
+
+### Handling Skipped Deployments
+
+When Vercel's "Skip Unaffected Projects" feature skips a deployment:
+
+1. Vercel sends a `vercel.deployment.skipped` event
+2. The trigger workflow marks that app as "ready" (no deployment to wait for)
+3. E2E tests only run for apps that were actually deployed
+4. If all deployments are skipped, the E2E workflow reports success without running tests
+
+This ensures documentation-only or package-only changes don't block the CI pipeline waiting for deployments that will never arrive.
 
 ## Next Steps
 
