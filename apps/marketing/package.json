@@ -29,6 +29,7 @@
     "tailwindcss": "catalog:"
   },
   "devDependencies": {
+    "babel-plugin-react-compiler": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
