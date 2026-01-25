@@ -1,10 +1,10 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Button } from '@nuclom/ui/button';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import useSWR from 'swr';
-import { Button } from '@/components/ui/button';
 import { FeedFilters, type FeedFilterType, type SourceFilter } from './feed-filters';
 import { FeedItem, type FeedItemData } from './feed-item';
 

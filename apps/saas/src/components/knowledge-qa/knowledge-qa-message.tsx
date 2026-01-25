@@ -1,10 +1,10 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Avatar, AvatarFallback } from '@nuclom/ui/avatar';
 import { AlertCircle, Bot, Database, User, WifiOff } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ConfidenceIndicator } from './confidence-indicator';
 import { KnowledgeQASources, type QASource } from './knowledge-qa-sources';
 

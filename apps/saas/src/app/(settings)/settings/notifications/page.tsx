@@ -3,6 +3,13 @@
 import { useAuth } from '@nuclom/auth/client';
 import { logger } from '@nuclom/lib/client-logger';
 import { cn } from '@nuclom/lib/utils';
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Label } from '@nuclom/ui/label';
+import { Separator } from '@nuclom/ui/separator';
+import { Switch } from '@nuclom/ui/switch';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@nuclom/ui/tooltip';
 import {
   Bell,
   Check,
@@ -18,13 +25,6 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { RequireAuth } from '@/components/auth/auth-guard';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 
 type NotificationPreferences = {

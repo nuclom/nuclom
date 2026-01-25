@@ -1,15 +1,15 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Input } from '@nuclom/ui/input';
+import { ScrollArea } from '@nuclom/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@nuclom/ui/select';
 import { FileText, GitPullRequest, Maximize2, Minimize2, Search, User, Video, ZoomIn, ZoomOut } from 'lucide-react';
 import type * as React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // Types for the knowledge graph
 interface GraphNode {

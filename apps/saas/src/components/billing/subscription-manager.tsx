@@ -12,13 +12,9 @@ import { logger } from '@nuclom/lib/client-logger';
 import type { Plan } from '@nuclom/lib/db/schema';
 import type { UsageSummary } from '@nuclom/lib/effect/services/billing-repository';
 import { cn } from '@nuclom/lib/utils';
-import { AlertTriangle, CheckCircle, CreditCard, Crown, Loader2, Sparkles } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState, useTransition } from 'react';
-import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@nuclom/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -27,7 +23,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from '@nuclom/ui/dialog';
+import { AlertTriangle, CheckCircle, CreditCard, Crown, Loader2, Sparkles } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState, useTransition } from 'react';
+import { toast } from 'sonner';
 
 // Types for subscription data from Better Auth Stripe
 interface SubscriptionData {

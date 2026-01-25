@@ -1,11 +1,11 @@
 'use client';
 
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Input } from '@nuclom/ui/input';
+import { Label } from '@nuclom/ui/label';
 import { Loader2, Lock } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 
 interface PasswordProtectedVideoProps {
   shareLinkId: string;

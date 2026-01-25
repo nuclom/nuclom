@@ -1,11 +1,11 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@nuclom/ui/tabs';
 import { AlertTriangle, GitCompare, LayoutGrid } from 'lucide-react';
 import { useState } from 'react';
 import useSWR from 'swr';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ConflictsPanel } from './conflicts-panel';
 import { CoverageAnalysis } from './coverage-analysis';
 import { UndocumentedDecisionsTable } from './undocumented-decisions-table';

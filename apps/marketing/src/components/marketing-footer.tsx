@@ -1,5 +1,5 @@
 import { Link } from '@vercel/microfrontends/next/client';
-import { CopyrightYear } from '@/components/copyright-year';
+import { Copyright } from '@/components/copyright';
 import { NuclomLogo } from '@/components/nuclom-logo';
 
 export function MarketingFooter() {
@@ -88,7 +88,7 @@ export function MarketingFooter() {
         </div>
 
         <div className="pt-8 border-t text-center text-sm text-muted-foreground">
-          © <CopyrightYear /> Nuclom. All rights reserved.
+          <Copyright />
         </div>
       </div>
     </footer>

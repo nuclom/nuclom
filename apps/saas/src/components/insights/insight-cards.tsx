@@ -1,10 +1,10 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Badge } from '@nuclom/ui/badge';
+import { Card, CardContent } from '@nuclom/ui/card';
+import { Skeleton } from '@nuclom/ui/skeleton';
 import { AlertTriangle, ArrowUpRight, Lightbulb, Link2, TrendingUp } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface ProactiveInsight {
   insight: string;

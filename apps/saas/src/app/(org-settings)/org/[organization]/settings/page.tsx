@@ -2,9 +2,6 @@
 
 import { authClient } from '@nuclom/auth/client';
 import { logger } from '@nuclom/lib/client-logger';
-import { Loader2 } from 'lucide-react';
-import { useParams, useRouter } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,11 +12,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from '@nuclom/ui/alert-dialog';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Input } from '@nuclom/ui/input';
+import { Label } from '@nuclom/ui/label';
+import { Loader2 } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 type Organization = {

@@ -2,13 +2,13 @@
 
 import { authClient } from '@nuclom/auth/client';
 import { logger } from '@nuclom/lib/client-logger';
+import { Avatar, AvatarFallback, AvatarImage } from '@nuclom/ui/avatar';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@nuclom/ui/card';
 import { Link } from '@vercel/microfrontends/next/client';
 import { AlertCircle, CheckCircle2, Loader2, LogOut, UserPlus, XCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 
 interface Invitation {

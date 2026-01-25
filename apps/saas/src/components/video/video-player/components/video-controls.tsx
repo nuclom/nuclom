@@ -1,6 +1,18 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Button } from '@nuclom/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from '@nuclom/ui/dropdown-menu';
 import {
   Captions,
   CaptionsOff,
@@ -18,18 +30,6 @@ import {
   Volume2,
   VolumeX,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { type CaptionTrack, PLAYBACK_RATES, SKIP_SECONDS } from '../types';
 import { formatTime } from '../utils';
 

@@ -1,10 +1,10 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Button } from '@nuclom/ui/button';
+import { Textarea } from '@nuclom/ui/textarea';
 import { ArrowUp, Loader2, Square } from 'lucide-react';
 import { type FormEvent, type KeyboardEvent, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 
 export interface ChatInputProps {
   value: string;

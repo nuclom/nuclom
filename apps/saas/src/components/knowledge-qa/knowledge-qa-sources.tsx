@@ -1,9 +1,9 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Card, CardContent } from '@nuclom/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@nuclom/ui/tooltip';
 import { ExternalLink, FileText, GitBranch, MessageSquare, Video } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export interface QASource {
   contentId: string;

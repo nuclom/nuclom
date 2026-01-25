@@ -2,12 +2,12 @@
 
 import { authClient } from '@nuclom/auth/client';
 import { logger } from '@nuclom/lib/client-logger';
+import { Alert, AlertDescription } from '@nuclom/ui/alert';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@nuclom/ui/card';
 import { Github, Link2, Loader2, Mail, Unlink } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { RequireAuth } from '@/components/auth/auth-guard';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 
 interface Account {

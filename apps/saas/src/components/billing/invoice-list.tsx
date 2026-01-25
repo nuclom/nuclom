@@ -1,12 +1,12 @@
 'use client';
 
 import type { Invoice } from '@nuclom/lib/db/schema';
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@nuclom/ui/table';
 import { format } from 'date-fns';
 import { Download, ExternalLink, FileText } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface InvoiceListProps {
   invoices: Invoice[];

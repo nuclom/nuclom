@@ -1,9 +1,6 @@
 'use client';
 
 import { logger } from '@nuclom/lib/client-logger';
-import { Loader2, MoreVertical, Pencil, Trash2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,15 +10,18 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
+} from '@nuclom/ui/alert-dialog';
+import { Button } from '@nuclom/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@nuclom/ui/dropdown-menu';
+import { Loader2, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export interface VideoActionsProps {
   videoId: string;

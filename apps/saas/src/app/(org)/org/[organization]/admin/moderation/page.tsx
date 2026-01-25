@@ -2,6 +2,31 @@
 
 import { logger } from '@nuclom/lib/client-logger';
 import type { ReportCategory, ReportResolution, ReportResourceType, ReportStatus } from '@nuclom/lib/db/schema';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@nuclom/ui/alert-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@nuclom/ui/avatar';
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@nuclom/ui/dropdown-menu';
+import { Label } from '@nuclom/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@nuclom/ui/select';
+import { Textarea } from '@nuclom/ui/textarea';
 import { formatDistanceToNow } from 'date-fns';
 import {
   AlertTriangle,
@@ -19,31 +44,6 @@ import {
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { RequireAuth } from '@/components/auth/auth-guard';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
 interface Reporter {

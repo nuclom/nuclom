@@ -2,11 +2,6 @@
 
 import { logger } from '@nuclom/lib/client-logger';
 import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from '@nuclom/lib/image-utils';
-import { formatDistanceToNow } from 'date-fns';
-import { Clock, Loader2, RotateCcw, Trash2 } from 'lucide-react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,10 +11,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+} from '@nuclom/ui/alert-dialog';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent } from '@nuclom/ui/card';
+import { Skeleton } from '@nuclom/ui/skeleton';
+import { formatDistanceToNow } from 'date-fns';
+import { Clock, Loader2, RotateCcw, Trash2 } from 'lucide-react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
 
 interface DeletedVideo {
   id: string;

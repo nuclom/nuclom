@@ -1,22 +1,15 @@
 'use client';
 
 import { logger } from '@nuclom/lib/client-logger';
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@nuclom/ui/dialog';
+import { Label } from '@nuclom/ui/label';
+import { Separator } from '@nuclom/ui/separator';
+import { Switch } from '@nuclom/ui/switch';
 import { format } from 'date-fns';
 import { Bell, Download, Info, RefreshCw, Shield } from 'lucide-react';
 import { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 
 interface Integration {

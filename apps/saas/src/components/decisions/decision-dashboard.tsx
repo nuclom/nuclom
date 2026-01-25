@@ -1,11 +1,11 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Button } from '@nuclom/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@nuclom/ui/tabs';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import useSWR from 'swr';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DecisionCard, type DecisionData } from './decision-card';
 
 // =============================================================================

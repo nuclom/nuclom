@@ -1,11 +1,11 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Badge } from '@nuclom/ui/badge';
+import { Skeleton } from '@nuclom/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@nuclom/ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@nuclom/ui/tooltip';
 import { AlertCircle, AlertTriangle, Info } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface UndocumentedDecision {
   decision: {

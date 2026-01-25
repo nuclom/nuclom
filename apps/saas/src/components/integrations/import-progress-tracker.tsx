@@ -1,6 +1,11 @@
 'use client';
 
 import { formatDurationHuman } from '@nuclom/lib/format-utils';
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Progress } from '@nuclom/ui/progress';
+import { ScrollArea } from '@nuclom/ui/scroll-area';
 import { Link } from '@vercel/microfrontends/next/client';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -15,11 +20,6 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ImportedMeeting {
   id: string;

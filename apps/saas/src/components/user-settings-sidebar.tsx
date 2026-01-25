@@ -1,12 +1,12 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Input } from '@nuclom/ui/input';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@nuclom/ui/tooltip';
 import { Link } from '@vercel/microfrontends/next/client';
 import { Bell, ChevronRight, Link2, Search, Shield, User, UserCog, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type NavItem = {
   href: string;

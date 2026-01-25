@@ -2,12 +2,8 @@
 
 import { authClient } from '@nuclom/auth/client';
 import { logger } from '@nuclom/lib/client-logger';
-import { Link } from '@vercel/microfrontends/next/client';
-import type { User } from 'better-auth';
-import { ArrowLeft, Film, HelpCircle, Home, LogOut, Settings } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@nuclom/ui/avatar';
+import { Button } from '@nuclom/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +12,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@nuclom/ui/dropdown-menu';
+import { Link } from '@vercel/microfrontends/next/client';
+import type { User } from 'better-auth';
+import { ArrowLeft, Film, HelpCircle, Home, LogOut, Settings } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { ThemeToggle } from './theme-toggle';
 
 interface UserSettingsTopNavProps {

@@ -1,12 +1,12 @@
 import { auth } from '@nuclom/lib/auth';
 import type { Organization } from '@nuclom/lib/db/schema';
 import { getOrganizationBySlug, getVideosSharedByOthers } from '@nuclom/lib/effect/server';
+import { Skeleton } from '@nuclom/ui/skeleton';
 import { Share2, VideoOff } from 'lucide-react';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
 import { VideoPreviewCard } from '@/components/video-preview-card';
 
 export const metadata: Metadata = {

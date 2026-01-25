@@ -8,7 +8,7 @@ import { Textarea } from '@nuclom/ui/textarea';
 import { Link } from '@vercel/microfrontends/next/client';
 import { ArrowLeft, CheckCircle, Loader2, Mail, Play } from 'lucide-react';
 import { useState } from 'react';
-import { CopyrightYear } from '@/components/copyright-year';
+import { Copyright } from '@/components/copyright';
 
 export default function SupportPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -265,7 +265,7 @@ export default function SupportPage() {
             </div>
           </div>
           <div className="mt-6 pt-6 border-t text-center text-sm text-muted-foreground">
-            © <CopyrightYear /> Nuclom. All rights reserved.
+            <Copyright />
           </div>
         </div>
       </footer>

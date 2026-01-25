@@ -3,11 +3,8 @@
 import { authClient } from '@nuclom/auth/client';
 import { logger } from '@nuclom/lib/client-logger';
 import { cn } from '@nuclom/lib/utils';
-import { Check, ChevronsUpDown, PlusCircle } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@nuclom/ui/avatar';
+import { Button } from '@nuclom/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -16,8 +13,11 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+} from '@nuclom/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@nuclom/ui/popover';
+import { Check, ChevronsUpDown, PlusCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 type Organization = {

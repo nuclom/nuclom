@@ -1,13 +1,13 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@nuclom/ui/tabs';
 import { ArrowRight, Bell, Check, ExternalLink, Sparkles, Video, Zap } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 
 interface StepIntegrationsProps {
