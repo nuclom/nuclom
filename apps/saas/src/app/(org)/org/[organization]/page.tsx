@@ -4,6 +4,7 @@ import { getCollections, getOrganizationBySlug, getVideos } from '@nuclom/lib/ef
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
+import { connection } from 'next/server';
 import { Suspense } from 'react';
 import { ActivityFeed } from '@/components/dashboard/activity-feed';
 import { DashboardHero } from '@/components/dashboard/dashboard-hero';
@@ -219,6 +220,7 @@ async function DashboardContent({ organizationId, organizationSlug, userName }: 
 // =============================================================================
 
 async function DashboardLoader({ params }: { params: Promise<{ organization: string }> }) {
+  await connection();
   const { organization: organizationSlug } = await params;
 
   // Authenticate user

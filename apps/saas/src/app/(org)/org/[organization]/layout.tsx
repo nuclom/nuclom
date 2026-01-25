@@ -2,6 +2,7 @@ import { db } from '@nuclom/lib/db';
 import { organizations } from '@nuclom/lib/db/schema';
 import { Skeleton } from '@nuclom/ui/skeleton';
 import { eq } from 'drizzle-orm';
+import { connection } from 'next/server';
 import type React from 'react';
 import { Suspense } from 'react';
 import { TrialBannerWrapper } from '@/components/billing/trial-banner-wrapper';
@@ -24,6 +25,7 @@ function NavSkeleton() {
 }
 
 async function LayoutContent({ children, params }: LayoutProps) {
+  await connection();
   const { organization } = await params;
 
   // Get organization ID for search functionality

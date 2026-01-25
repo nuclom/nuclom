@@ -1,5 +1,6 @@
 import { getAppUrl } from '@nuclom/lib/env/server';
 import { createLogger } from '@nuclom/lib/logger';
+import { connection } from 'next/server';
 import { Suspense } from 'react';
 import { AcceptInvitationForm } from '@/components/auth/accept-invitation-form';
 
@@ -35,6 +36,7 @@ function AcceptInvitationSkeleton() {
 }
 
 async function AcceptInvitationContent({ params }: { params: Promise<{ id: string }> }) {
+  await connection();
   const { id } = await params;
   const invitation = await getInvitation(id);
 
