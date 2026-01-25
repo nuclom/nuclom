@@ -118,4 +118,4 @@ const withPostHog = (config: NextConfig) =>
       })
     : config;
 
-export default withWorkflow(withMicrofrontends(withPostHog(nextConfig)));
+export default withWorkflow(withPostHog(withMicrofrontends(nextConfig)));
