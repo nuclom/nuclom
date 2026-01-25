@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
       '@effect/sql',
       'ai',
     ],
-    // Reduce memory usage by limiting parallel workers (critical for 8GB environments)
+    // Reduce memory usage by limiting parallel workers
     workerThreads: false,
     cpus: 4,
   },

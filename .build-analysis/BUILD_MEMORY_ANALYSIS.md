@@ -95,31 +95,87 @@ Normal garbage collection patterns were observed. Memory increases during compil
 
 ## Recommendations
 
-### Applied Optimizations (for 8GB environments)
+### Verified Memory Breakdown (Actual Measurements)
+
+| Component | Memory | % of Peak | Reducible? |
+|-----------|--------|-----------|------------|
+| **Turbopack main process** | 6.38 GB | 40% | **No** - architectural |
+| esbuild (workflow bundler) | 1.25 GB | 8% | Partially |
+| 6 type-check workers | ~3 GB | 19% | Yes - via cpus |
+| Other processes | ~5 GB | 31% | Partially |
+
+**Key Finding:** Next.js 16 uses Turbopack by default, which requires ~6-7 GB for the main process alone. This is not configurable.
+
+### Applied Optimizations
 
 #### 1. Sequential Turbo Builds
 ```json
-// turbo.json - builds run one at a time, not in parallel
-"concurrency": 1
+// turbo.json
+"concurrency": "1"
 ```
+**Result:** Prevents parallel app builds, but doesn't reduce single-app memory.
 
-This prevents marketing + saas from building simultaneously, cutting peak memory by ~50%.
-
-#### 2. Disabled Worker Threads
+#### 2. Reduced Worker Count
 ```typescript
 // next.config.ts
 experimental: {
-  workerThreads: false,  // Disable parallel workers
-  cpus: 4,               // Limit CPU parallelism
+  workerThreads: false,
+  cpus: 4,
 }
 ```
+**Result:** Page data collection uses 4 workers instead of 15 (~1GB saved).
 
-#### 3. Expanded Package Import Optimization
-Added to `optimizePackageImports`:
-- `effect`
-- `@effect/platform`
-- `@effect/sql`
-- `ai`
+#### 3. Package Import Optimization
+```typescript
+optimizePackageImports: ['effect', '@effect/platform', '@effect/sql', 'ai', ...]
+```
+**Result:** Faster builds, marginal memory improvement.
+
+### Options for 8GB Environments
+
+#### Option 1: Configure Swap Space (Recommended for CI)
+```bash
+# Add 16GB swap on Linux CI
+sudo fallocate -l 16G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+```
+Build will be slower but complete. Peak 16GB will use ~8GB swap.
+
+#### Option 2: Use Vercel for Builds
+Vercel automatically allocates sufficient memory for Next.js builds. Deploy via `git push` instead of building locally.
+
+#### Option 3: Split the Build (Advanced)
+Build packages separately with caching:
+```bash
+# Build libs first (cached)
+turbo build --filter=@nuclom/lib --filter=@nuclom/ui
+
+# Then build apps separately
+turbo build --filter=nuclom-marketing
+turbo build --filter=nuclom-saas
+```
+
+#### Option 4: Downgrade to Next.js 15
+Next.js 15 supports webpack bundler which uses less memory (~4-6GB peak). Not recommended due to feature loss.
+
+### What Does NOT Work
+
+| Attempted | Result |
+|-----------|--------|
+| `bundler: 'webpack'` | Invalid in Next.js 16 |
+| `--no-turbopack` | Flag doesn't exist |
+| `workerThreads: false` | Only affects workers, not main process |
+| `cpus: 4` | Reduces workers but main process still 6+ GB |
+
+### Minimum Requirements
+
+| Environment | Minimum RAM | Recommended |
+|-------------|-------------|-------------|
+| Local dev | 8 GB + swap | 16 GB |
+| CI/CD | 8 GB + 16GB swap | 16 GB |
+| Vercel | Auto-managed | N/A |
 
 ### Additional Optimizations (if still needed)
 
