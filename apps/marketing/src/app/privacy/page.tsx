@@ -2,7 +2,7 @@ import { Button } from '@nuclom/ui/button';
 import { Card, CardContent } from '@nuclom/ui/card';
 import { Link } from '@vercel/microfrontends/next/client';
 import { ArrowLeft, Play } from 'lucide-react';
-import { CopyrightYear } from '@/components/copyright-year';
+import { Copyright } from '@/components/copyright';
 
 export const metadata = {
   title: 'Privacy Policy',
@@ -379,7 +379,7 @@ export default function PrivacyPolicyPage() {
             </div>
           </div>
           <div className="mt-6 pt-6 border-t text-center text-sm text-muted-foreground">
-            © <CopyrightYear /> Nuclom. All rights reserved.
+            <Copyright />
           </div>
         </div>
       </footer>
