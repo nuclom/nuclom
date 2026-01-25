@@ -9,7 +9,19 @@ const nextConfig: NextConfig = {
 
   // Optimize barrel file imports for better bundle size and faster builds
   experimental: {
-    optimizePackageImports: ['lucide-react', 'date-fns', 'react-day-picker', 'posthog-js'],
+    optimizePackageImports: [
+      'lucide-react',
+      'date-fns',
+      'react-day-picker',
+      'posthog-js',
+      'effect',
+      '@effect/platform',
+      '@effect/sql',
+      'ai',
+    ],
+    // Reduce memory usage by limiting parallel workers (critical for 8GB environments)
+    workerThreads: false,
+    cpus: 4,
   },
 
   // Image optimization configuration

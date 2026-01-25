@@ -95,49 +95,33 @@ Normal garbage collection patterns were observed. Memory increases during compil
 
 ## Recommendations
 
-### Immediate Actions (Quick Wins)
+### Applied Optimizations (for 8GB environments)
 
-#### 1. Reduce Worker Parallelism
-```bash
-# In apps/saas/package.json, update build script:
-"build": "NODE_OPTIONS='--max-old-space-size=8192' next build --experimental-build-workers=8"
+#### 1. Sequential Turbo Builds
+```json
+// turbo.json - builds run one at a time, not in parallel
+"concurrency": 1
 ```
 
-Reducing workers from 15+ to 8 can cut peak memory by 30-40%.
+This prevents marketing + saas from building simultaneously, cutting peak memory by ~50%.
 
-#### 2. Increase Node Memory Limit
-```bash
-# Current: 8GB, recommend: 16GB for CI environments
-"build": "NODE_OPTIONS='--max-old-space-size=16384' next build"
-```
-
-#### 3. Use Turbopack's Built-in Memory Limits
+#### 2. Disabled Worker Threads
 ```typescript
 // next.config.ts
-const nextConfig: NextConfig = {
-  // ... existing config
-  experimental: {
-    // ... existing options
-    turbo: {
-      memoryLimit: 8 * 1024 * 1024 * 1024, // 8GB limit
-    },
-  },
-};
+experimental: {
+  workerThreads: false,  // Disable parallel workers
+  cpus: 4,               // Limit CPU parallelism
+}
 ```
 
-### Medium-Term Optimizations
-
-#### 4. Optimize Package Imports (Already Partially Done)
-The following packages have `optimizePackageImports` enabled - verify these are working:
-- `lucide-react`
-- `date-fns`
-- `react-day-picker`
-- `posthog-js`
-
-Consider adding:
+#### 3. Expanded Package Import Optimization
+Added to `optimizePackageImports`:
 - `effect`
-- `@effect/*` packages
+- `@effect/platform`
+- `@effect/sql`
 - `ai`
+
+### Additional Optimizations (if still needed)
 
 #### 5. Code Split Large Routes
 The API routes directory (1.6MB) could benefit from dynamic imports:

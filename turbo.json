@@ -3,6 +3,8 @@
   "remoteCache": {
     "enabled": true
   },
+  "ui": "stream",
+  "concurrency": "1",
   "globalEnv": [
     "DATABASE_URL",
     "BETTER_AUTH_SECRET",
