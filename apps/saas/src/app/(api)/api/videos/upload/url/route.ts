@@ -6,7 +6,10 @@
 
 import { createPublicLayer, mapErrorToApiResponse } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
-import { CollectionRepository, Storage, ValidationError, VideoRepository } from '@nuclom/lib/effect';
+import { ValidationError } from '@nuclom/lib/effect/errors';
+import { CollectionRepository } from '@nuclom/lib/effect/services/collection-repository';
+import { Storage } from '@nuclom/lib/effect/services/storage';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
 import { logger } from '@nuclom/lib/logger';
 import type { ApiResponse } from '@nuclom/lib/types';
 import { validate } from '@nuclom/lib/validation';

@@ -1,5 +1,5 @@
 import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
-import { MissingFieldError } from '@nuclom/lib/effect';
+import { MissingFieldError } from '@nuclom/lib/effect/errors';
 import { Auth } from '@nuclom/lib/effect/services/auth';
 import { Billing } from '@nuclom/lib/effect/services/billing';
 import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';

@@ -1,6 +1,7 @@
 import { handleEffectExit, handleEffectExitWithStatus, runApiEffect } from '@nuclom/lib/api-handler';
-import { BillingRepository, OrganizationRepository } from '@nuclom/lib/effect';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { SlackMonitoring } from '@nuclom/lib/effect/services/slack-monitoring';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';

@@ -1,6 +1,6 @@
 import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
-import { NotificationRepository } from '@nuclom/lib/effect';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { NotificationRepository } from '@nuclom/lib/effect/services/notification-repository';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 

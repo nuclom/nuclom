@@ -5,8 +5,9 @@ import {
   handleEffectExitWithStatus,
 } from '@nuclom/lib/api-handler';
 import type { MomentType } from '@nuclom/lib/db/schema';
-import { ClipRepository, VideoRepository } from '@nuclom/lib/effect';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { ClipRepository } from '@nuclom/lib/effect/services/clip-repository';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
 import { validateQueryParams, validateRequestBody } from '@nuclom/lib/validation';
 import { CreateClipSchema, PaginationSchema } from '@nuclom/lib/validation/schemas';
 import { Effect } from 'effect';

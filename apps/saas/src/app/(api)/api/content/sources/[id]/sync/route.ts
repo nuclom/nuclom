@@ -12,8 +12,8 @@ import {
   handleEffectExitWithStatus,
   resolveParams,
 } from '@nuclom/lib/api-handler';
-import { OrganizationRepository } from '@nuclom/lib/effect';
 import { getContentSource, getContentSyncProgress, syncContentSource } from '@nuclom/lib/effect/services/content';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
 

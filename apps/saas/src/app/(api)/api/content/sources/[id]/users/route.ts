@@ -9,9 +9,9 @@ import { contentItems, contentParticipants, users } from '@nuclom/lib/db/schema'
 import { githubUsers } from '@nuclom/lib/db/schema/github';
 import { notionUsers } from '@nuclom/lib/db/schema/notion';
 import { slackUsers } from '@nuclom/lib/db/schema/slack';
-import { OrganizationRepository } from '@nuclom/lib/effect';
 import { getContentSource } from '@nuclom/lib/effect/services/content';
 import { Database, type DrizzleDB } from '@nuclom/lib/effect/services/database';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { and, count, eq, isNotNull, isNull } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';

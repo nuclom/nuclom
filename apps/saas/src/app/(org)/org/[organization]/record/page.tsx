@@ -1,6 +1,6 @@
 import { auth } from '@nuclom/lib/auth';
 import type { Organization } from '@nuclom/lib/db/schema';
-import { getCachedOrganizationBySlug } from '@nuclom/lib/effect';
+import { getOrganizationBySlug } from '@nuclom/lib/effect/server';
 import { Button } from '@nuclom/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
 import { Skeleton } from '@nuclom/ui/skeleton';
@@ -104,7 +104,7 @@ async function RecordLoader({ params }: { params: Promise<{ organization: string
   // Get organization by slug using cached Effect query
   let _organization: Organization;
   try {
-    _organization = await getCachedOrganizationBySlug(organizationSlug);
+    _organization = await getOrganizationBySlug(organizationSlug);
   } catch {
     notFound();
   }

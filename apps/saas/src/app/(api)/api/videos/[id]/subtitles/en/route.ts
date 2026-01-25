@@ -9,7 +9,8 @@
  */
 
 import { runApiEffect } from '@nuclom/lib/api-handler';
-import { NotFoundError, VideoRepository } from '@nuclom/lib/effect';
+import { NotFoundError } from '@nuclom/lib/effect/errors';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
 import { generateSRT, generateWebVTT } from '@nuclom/lib/subtitles';
 import { Effect } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';

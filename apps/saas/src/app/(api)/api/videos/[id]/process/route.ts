@@ -1,6 +1,7 @@
 import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
-import { AppLive, NotFoundError } from '@nuclom/lib/effect';
+import { NotFoundError } from '@nuclom/lib/effect/errors';
+import { AppLive } from '@nuclom/lib/effect/runtime';
 import { Auth, makeAuthLayer } from '@nuclom/lib/effect/services/auth';
 import { Storage } from '@nuclom/lib/effect/services/storage';
 import { TranscriptionLive } from '@nuclom/lib/effect/services/transcription';

@@ -1,6 +1,6 @@
 import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
-import { SearchRepository } from '@nuclom/lib/effect';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { SearchRepository } from '@nuclom/lib/effect/services/search-repository';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';

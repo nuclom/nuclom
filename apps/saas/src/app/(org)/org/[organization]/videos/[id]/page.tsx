@@ -2,7 +2,8 @@ import { createPublicLayer } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
 import { db } from '@nuclom/lib/db';
 import { videoChapters } from '@nuclom/lib/db/schema';
-import { getCachedVideo, Storage } from '@nuclom/lib/effect';
+import { getVideo } from '@nuclom/lib/effect/server';
+import { Storage } from '@nuclom/lib/effect/services/storage';
 import { asc, eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 import { headers } from 'next/headers';
@@ -91,7 +92,7 @@ async function VideoLoader({ params }: VideoLoaderProps) {
 
   // Fetch video details and chapters in parallel
   const [video, chapters] = await Promise.all([
-    getCachedVideo(videoId),
+    getVideo(videoId),
     db.select().from(videoChapters).where(eq(videoChapters.videoId, videoId)).orderBy(asc(videoChapters.startTime)),
   ]);
 

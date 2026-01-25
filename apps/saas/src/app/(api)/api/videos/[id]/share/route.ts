@@ -1,6 +1,6 @@
 import { Auth, createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
 import { videoShareLinks, videos } from '@nuclom/lib/db/schema';
-import { DatabaseError, NotFoundError, ValidationError } from '@nuclom/lib/effect';
+import { DatabaseError, NotFoundError, ValidationError } from '@nuclom/lib/effect/errors';
 import { Database } from '@nuclom/lib/effect/services/database';
 import type { ApiResponse } from '@nuclom/lib/types';
 import { validateRequestBody } from '@nuclom/lib/validation';

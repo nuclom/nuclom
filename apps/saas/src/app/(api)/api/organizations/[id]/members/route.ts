@@ -1,6 +1,6 @@
 import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
-import { OrganizationRepository } from '@nuclom/lib/effect';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { safeParse } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';

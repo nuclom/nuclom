@@ -1,6 +1,6 @@
 import { createFullLayer, handleEffectExitWithStatus } from '@nuclom/lib/api-handler';
-import { ClipRepository } from '@nuclom/lib/effect';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { ClipRepository } from '@nuclom/lib/effect/services/clip-repository';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 import { renderHighlightReelWorkflow } from '@/workflows/highlight-reel-render';

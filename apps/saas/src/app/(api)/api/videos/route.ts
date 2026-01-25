@@ -7,8 +7,8 @@ import {
   Storage,
 } from '@nuclom/lib/api-handler';
 import { CachePresets, getCacheControlHeader } from '@nuclom/lib/api-utils';
-import { VideoRepository } from '@nuclom/lib/effect';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
 import { validateQueryParams, validateRequestBody } from '@nuclom/lib/validation';
 import { sanitizeDescription, sanitizeTitle } from '@nuclom/lib/validation/sanitize';
 import { CreateVideoSchema, GetVideosSchema } from '@nuclom/lib/validation/schemas';

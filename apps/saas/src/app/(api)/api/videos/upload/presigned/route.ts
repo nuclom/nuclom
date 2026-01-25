@@ -7,9 +7,10 @@
 
 import { createPublicLayer, mapErrorToApiResponse } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
-import { Storage, ValidationError } from '@nuclom/lib/effect';
+import { ValidationError } from '@nuclom/lib/effect/errors';
 import { checkResourceLimit, requireWriteAccess } from '@nuclom/lib/effect/services/billing-middleware';
 import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';
+import { Storage } from '@nuclom/lib/effect/services/storage';
 import type { ApiResponse } from '@nuclom/lib/types';
 import { validate } from '@nuclom/lib/validation';
 import { Effect, Option, Schema } from 'effect';

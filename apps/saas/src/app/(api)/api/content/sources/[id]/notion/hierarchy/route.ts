@@ -7,10 +7,10 @@
 
 import { Auth, createFullLayer, handleEffectExit, resolveParams } from '@nuclom/lib/api-handler';
 import { type NotionPageHierarchyRecord, notionPageHierarchy } from '@nuclom/lib/db/schema';
-import { OrganizationRepository } from '@nuclom/lib/effect';
 import { getContentSource, updateContentSource } from '@nuclom/lib/effect/services/content';
 import { NotionContentAdapter } from '@nuclom/lib/effect/services/content/notion-content-adapter';
 import { Database } from '@nuclom/lib/effect/services/database';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { validateQueryParams, validateRequestBody } from '@nuclom/lib/validation';
 import { asc, eq } from 'drizzle-orm';
 import { Effect, Schema } from 'effect';

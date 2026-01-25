@@ -1,6 +1,7 @@
 import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
-import { ForbiddenError, OrganizationRepository } from '@nuclom/lib/effect';
+import { ForbiddenError } from '@nuclom/lib/effect/errors';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { Effect } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
 

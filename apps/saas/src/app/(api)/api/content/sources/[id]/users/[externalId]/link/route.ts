@@ -15,9 +15,9 @@ import {
 import { githubUsers } from '@nuclom/lib/db/schema/github';
 import { notionUsers } from '@nuclom/lib/db/schema/notion';
 import { slackUsers } from '@nuclom/lib/db/schema/slack';
-import { OrganizationRepository } from '@nuclom/lib/effect';
 import { getContentSource } from '@nuclom/lib/effect/services/content';
 import { Database } from '@nuclom/lib/effect/services/database';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { and, eq } from 'drizzle-orm';
 import { Effect, Schema } from 'effect';

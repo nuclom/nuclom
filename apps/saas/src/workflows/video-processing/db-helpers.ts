@@ -61,7 +61,7 @@ export async function updateContentItemWithProcessedData(
 
   try {
     const { Effect } = await import('effect');
-    const { updateVideoContentItem } = await import('@nuclom/lib/effect/services');
+    const { updateVideoContentItem } = await import('@nuclom/lib/effect/services/content');
     const { createPublicLayer } = await import('@nuclom/lib/api-handler');
 
     const effect = updateVideoContentItem(videoId, organizationId, data);

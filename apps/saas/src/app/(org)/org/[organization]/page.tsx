@@ -1,6 +1,6 @@
 import { auth } from '@nuclom/lib/auth';
 import type { Organization } from '@nuclom/lib/db/schema';
-import { getCachedCollections, getCachedOrganizationBySlug, getCachedVideos } from '@nuclom/lib/effect';
+import { getCollections, getOrganizationBySlug, getVideos } from '@nuclom/lib/effect/server';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
@@ -140,8 +140,8 @@ interface DashboardContentProps {
 async function DashboardContent({ organizationId, organizationSlug, userName }: DashboardContentProps) {
   // Fetch videos and collections using cached Effect queries
   const [videosResult, collectionsResult] = await Promise.all([
-    getCachedVideos(organizationId),
-    getCachedCollections(organizationId),
+    getVideos(organizationId),
+    getCollections(organizationId),
   ]);
   const videos = videosResult.data;
   const collections = collectionsResult.data;
@@ -233,7 +233,7 @@ async function DashboardLoader({ params }: { params: Promise<{ organization: str
   // Get organization by slug using cached Effect query
   let organization: Organization;
   try {
-    organization = await getCachedOrganizationBySlug(organizationSlug);
+    organization = await getOrganizationBySlug(organizationSlug);
   } catch {
     notFound();
   }

@@ -1,8 +1,9 @@
 import { createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@nuclom/lib/api-handler';
-import { getVideo, MissingFieldError, ValidationError } from '@nuclom/lib/effect';
+import { MissingFieldError, ValidationError } from '@nuclom/lib/effect/errors';
 import { Auth } from '@nuclom/lib/effect/services/auth';
 import { Embedding } from '@nuclom/lib/effect/services/embedding';
 import { SemanticSearchRepository } from '@nuclom/lib/effect/services/semantic-search-repository';
+import { getVideo } from '@nuclom/lib/effect/services/video-repository';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 import { connection } from 'next/server';

@@ -1,5 +1,6 @@
 import { Auth, generatePresignedThumbnailUrl, handleEffectExit, runApiEffect, Storage } from '@nuclom/lib/api-handler';
-import { ActionItemRepository, OrganizationRepository } from '@nuclom/lib/effect';
+import { ActionItemRepository } from '@nuclom/lib/effect/services/action-item-repository';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';

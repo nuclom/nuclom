@@ -6,8 +6,8 @@
  */
 
 import { Auth, createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@nuclom/lib/api-handler';
-import { OrganizationRepository } from '@nuclom/lib/effect';
 import { ContentRepository, createContentSource } from '@nuclom/lib/effect/services/content';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { validateQueryParams, validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';

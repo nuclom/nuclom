@@ -1,7 +1,7 @@
 import { handleEffectExitWithOptions, runApiEffect } from '@nuclom/lib/api-handler';
 import { CachePresets, getCacheControlHeader } from '@nuclom/lib/api-utils';
-import { KnowledgeGraphRepository } from '@nuclom/lib/effect';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { KnowledgeGraphRepository } from '@nuclom/lib/effect/services/knowledge-graph-repository';
 import { validateQueryParams } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import { connection, type NextRequest } from 'next/server';

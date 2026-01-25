@@ -1,6 +1,6 @@
 import { auth } from '@nuclom/lib/auth';
 import type { Organization } from '@nuclom/lib/db/schema';
-import { getCachedOrganizationBySlug, getCachedVideosByAuthor } from '@nuclom/lib/effect';
+import { getOrganizationBySlug, getVideosByAuthor } from '@nuclom/lib/effect/server';
 import { Button } from '@nuclom/ui/button';
 import { Skeleton } from '@nuclom/ui/skeleton';
 import { Link } from '@vercel/microfrontends/next/client';
@@ -75,7 +75,7 @@ interface MyVideosContentProps {
 }
 
 async function MyVideosContent({ userId, organizationId, organizationSlug }: MyVideosContentProps) {
-  const result = await getCachedVideosByAuthor(userId, organizationId);
+  const result = await getVideosByAuthor(userId, organizationId);
   const videos = result.data;
 
   if (videos.length === 0) {
@@ -110,7 +110,7 @@ async function MyVideosLoader({ params }: { params: Promise<{ organization: stri
   // Get organization by slug using cached Effect query
   let organization: Organization;
   try {
-    organization = await getCachedOrganizationBySlug(organizationSlug);
+    organization = await getOrganizationBySlug(organizationSlug);
   } catch {
     notFound();
   }

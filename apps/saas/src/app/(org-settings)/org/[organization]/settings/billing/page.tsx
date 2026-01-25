@@ -1,5 +1,5 @@
 import { auth } from '@nuclom/lib/auth';
-import { AppLive } from '@nuclom/lib/effect';
+import { AppLive } from '@nuclom/lib/effect/runtime';
 import { Auth, makeAuthLayer } from '@nuclom/lib/effect/services/auth';
 import { Billing } from '@nuclom/lib/effect/services/billing';
 import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';

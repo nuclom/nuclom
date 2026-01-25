@@ -1,10 +1,9 @@
 import { auth } from '@nuclom/lib/auth';
 import type { Organization } from '@nuclom/lib/db/schema';
-import { getCachedOrganizationBySlug } from '@nuclom/lib/effect';
+import { getOrganizationBySlug } from '@nuclom/lib/effect/server';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-
 import { KnowledgeFeed } from '@/components/feed/knowledge-feed';
 
 // =============================================================================
@@ -53,7 +52,7 @@ async function FeedLoader({ params }: { params: Promise<{ organization: string }
   // Get organization by slug
   let organization: Organization;
   try {
-    organization = await getCachedOrganizationBySlug(organizationSlug);
+    organization = await getOrganizationBySlug(organizationSlug);
   } catch {
     notFound();
   }

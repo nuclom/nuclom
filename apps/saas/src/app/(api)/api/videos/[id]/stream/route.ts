@@ -6,7 +6,9 @@
  */
 
 import { handleEffectExitWithOptions, runPublicApiEffect } from '@nuclom/lib/api-handler';
-import { NotFoundError, Storage, VideoRepository } from '@nuclom/lib/effect';
+import { NotFoundError } from '@nuclom/lib/effect/errors';
+import { Storage } from '@nuclom/lib/effect/services/storage';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 

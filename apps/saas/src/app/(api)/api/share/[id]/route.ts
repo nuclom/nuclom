@@ -1,5 +1,7 @@
 import { handleEffectExit, runPublicApiEffect } from '@nuclom/lib/api-handler';
-import { NotFoundError, Storage, ValidationError, VideoShareLinksRepository } from '@nuclom/lib/effect';
+import { NotFoundError, ValidationError } from '@nuclom/lib/effect/errors';
+import { Storage } from '@nuclom/lib/effect/services/storage';
+import { VideoShareLinksRepository } from '@nuclom/lib/effect/services/video-share-links-repository';
 import { Effect, Option } from 'effect';
 import type { NextRequest } from 'next/server';
 

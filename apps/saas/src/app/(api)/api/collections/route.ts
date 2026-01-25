@@ -7,7 +7,7 @@ import {
 } from '@nuclom/lib/api-handler';
 import { CachePresets, getCacheControlHeader, parsePaginationParams } from '@nuclom/lib/api-utils';
 import type { CollectionType } from '@nuclom/lib/db/schema';
-import { MissingFieldError } from '@nuclom/lib/effect';
+import { MissingFieldError } from '@nuclom/lib/effect/errors';
 import { Auth } from '@nuclom/lib/effect/services/auth';
 import { CollectionRepository } from '@nuclom/lib/effect/services/collection-repository';
 import { validateRequestBody } from '@nuclom/lib/validation';

@@ -1,7 +1,8 @@
 import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
-import { DatabaseError, ForbiddenError, OrganizationRepository, ValidationError } from '@nuclom/lib/effect';
+import { DatabaseError, ForbiddenError, ValidationError } from '@nuclom/lib/effect/errors';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { safeParse } from '@nuclom/lib/validation';
 import { Effect, Option, Schema } from 'effect';
 import { headers } from 'next/headers';

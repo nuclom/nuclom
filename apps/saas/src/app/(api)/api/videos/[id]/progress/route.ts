@@ -1,7 +1,8 @@
 import { handleEffectExit, handleEffectExitWithOptions, runApiEffect } from '@nuclom/lib/api-handler';
 import { CachePresets, getCacheControlHeader } from '@nuclom/lib/api-utils';
-import { ValidationError, VideoProgressRepository } from '@nuclom/lib/effect';
+import { ValidationError } from '@nuclom/lib/effect/errors';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { VideoProgressRepository } from '@nuclom/lib/effect/services/video-progress-repository';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Option, Schema } from 'effect';
 import type { NextRequest } from 'next/server';

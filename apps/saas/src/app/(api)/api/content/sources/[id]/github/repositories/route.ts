@@ -7,10 +7,10 @@
 
 import { Auth, createFullLayer, handleEffectExit, resolveParams } from '@nuclom/lib/api-handler';
 import { type GitHubRepoSyncRecord, githubRepoSync } from '@nuclom/lib/db/schema';
-import { OrganizationRepository } from '@nuclom/lib/effect';
 import { getContentSource, updateContentSource } from '@nuclom/lib/effect/services/content';
 import { GitHubContentAdapter } from '@nuclom/lib/effect/services/content/github';
 import { Database } from '@nuclom/lib/effect/services/database';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { eq } from 'drizzle-orm';
 import { Effect, Schema } from 'effect';

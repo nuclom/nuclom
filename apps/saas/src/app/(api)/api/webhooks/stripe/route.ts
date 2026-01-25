@@ -24,7 +24,7 @@ import {
   type NewPaymentMethod,
   processedWebhookEvents,
 } from '@nuclom/lib/db/schema';
-import { AppLive } from '@nuclom/lib/effect';
+import { AppLive } from '@nuclom/lib/effect/runtime';
 import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';
 import { Database, type DrizzleDB } from '@nuclom/lib/effect/services/database';
 import { EmailNotifications } from '@nuclom/lib/effect/services/email-notifications';

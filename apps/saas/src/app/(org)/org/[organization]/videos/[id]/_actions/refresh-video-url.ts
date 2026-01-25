@@ -3,7 +3,7 @@
 import { createPublicLayer } from '@nuclom/lib/api-handler';
 import { db } from '@nuclom/lib/db';
 import { videos } from '@nuclom/lib/db/schema';
-import { Storage } from '@nuclom/lib/effect';
+import { Storage } from '@nuclom/lib/effect/services/storage';
 import { eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 

@@ -1,7 +1,8 @@
 import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
-import { ValidationError, VideoRepository } from '@nuclom/lib/effect';
+import { ValidationError } from '@nuclom/lib/effect/errors';
 import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
 import type { ApiResponse } from '@nuclom/lib/types';
 import { Effect, Option } from 'effect';
 import { headers } from 'next/headers';
