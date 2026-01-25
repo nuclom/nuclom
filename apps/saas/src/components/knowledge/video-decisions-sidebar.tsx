@@ -9,15 +9,15 @@
 
 import type { DecisionStatus, DecisionType } from '@nuclom/lib/db/schema';
 import { cn } from '@nuclom/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@nuclom/ui/avatar';
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@nuclom/ui/collapsible';
+import { ScrollArea } from '@nuclom/ui/scroll-area';
+import { Skeleton } from '@nuclom/ui/skeleton';
 import { ChevronDown, ChevronUp, Clock, Lightbulb, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Skeleton } from '@/components/ui/skeleton';
 
 // =============================================================================
 // Types

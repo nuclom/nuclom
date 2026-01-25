@@ -1,8 +1,8 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
-import { Button } from '@/components/ui/button';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Button } from '@nuclom/ui/button';
+import { ToggleGroup, ToggleGroupItem } from '@nuclom/ui/toggle-group';
 
 // =============================================================================
 // Types

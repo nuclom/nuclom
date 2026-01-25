@@ -1,13 +1,13 @@
 'use client';
 
 import { logErrorBoundary } from '@nuclom/lib/error-logging';
+import { Alert, AlertDescription, AlertTitle } from '@nuclom/ui/alert';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@nuclom/ui/card';
 import { Link } from '@vercel/microfrontends/next/client';
 import { AlertTriangle, ArrowLeft, Home, RefreshCcw } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect } from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ErrorPageProps {
   error: Error & { digest?: string };

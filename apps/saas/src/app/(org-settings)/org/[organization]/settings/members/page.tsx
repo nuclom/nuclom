@@ -3,14 +3,10 @@
 import { authClient } from '@nuclom/auth/client';
 import { logger } from '@nuclom/lib/client-logger';
 import type { Member, Organization, User } from '@nuclom/lib/db/schema';
-import { CheckCircle2, Clock, Loader2, Mail, MailX, MoreHorizontal, Plus, Shield, UserMinus } from 'lucide-react';
-import { useParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useState } from 'react';
-import { ConfirmDialog } from '@/components/confirm-dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@nuclom/ui/avatar';
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -19,17 +15,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+} from '@nuclom/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@nuclom/ui/dropdown-menu';
+import { Input } from '@nuclom/ui/input';
+import { Label } from '@nuclom/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@nuclom/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@nuclom/ui/table';
+import { CheckCircle2, Clock, Loader2, Mail, MailX, MoreHorizontal, Plus, Shield, UserMinus } from 'lucide-react';
+import { useParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useState } from 'react';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useToast } from '@/hooks/use-toast';
 
 type MemberWithUser = Member & {

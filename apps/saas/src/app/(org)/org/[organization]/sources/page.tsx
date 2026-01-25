@@ -6,10 +6,10 @@
  * Manage content source integrations for knowledge import.
  */
 
+import { Card, CardContent } from '@nuclom/ui/card';
 import { useParams, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect } from 'react';
 import { ContentSourcesManager } from '@/components/integrations/content-sources-manager';
-import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 
 function SourcesPageContent() {

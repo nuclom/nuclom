@@ -1,9 +1,9 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Card, CardContent } from '@nuclom/ui/card';
+import { Skeleton } from '@nuclom/ui/skeleton';
 import { ArrowDown, ArrowRight, ArrowUp, TrendingUp } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface TrendAnalysis {
   topic: string;

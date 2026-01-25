@@ -1,10 +1,10 @@
 'use client';
 
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@nuclom/ui/card';
 import { Link } from '@vercel/microfrontends/next/client';
 import { ArrowLeft, FileQuestion, Home } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function NotFound() {
   const router = useRouter();

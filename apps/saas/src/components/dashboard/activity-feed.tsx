@@ -1,9 +1,9 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@nuclom/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@nuclom/ui/card';
 import { Clock, MessageSquare, Play, Upload, Users } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ActivityItem {
   id: string;

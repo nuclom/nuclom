@@ -1,8 +1,8 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
 import { useMemo } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Keyword {
   word: string;

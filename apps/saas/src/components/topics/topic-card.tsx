@@ -1,10 +1,10 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Badge } from '@nuclom/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@nuclom/ui/card';
 import { formatDistanceToNow } from 'date-fns';
 import { Hash, Tags } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 // =============================================================================
 // Types

@@ -1,11 +1,11 @@
 'use client';
 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Progress } from '@nuclom/ui/progress';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@nuclom/ui/table';
 import { Link } from '@vercel/microfrontends/next/client';
 import { Clock, Eye, TrendingUp } from 'lucide-react';
 import Image from 'next/image';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface TopVideo {
   videoId: string;

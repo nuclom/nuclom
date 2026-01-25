@@ -1,13 +1,13 @@
 'use client';
 
+import { Button } from '@nuclom/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@nuclom/ui/select';
 import { BarChart3 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { AnalyticsOverview } from '@/components/analytics/analytics-overview';
 import { TopVideosTable } from '@/components/analytics/top-videos-table';
 import { ViewsChart } from '@/components/analytics/views-chart';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface AnalyticsData {
   overview: {

@@ -1,11 +1,11 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Button } from '@nuclom/ui/button';
+import { ScrollArea } from '@nuclom/ui/scroll-area';
+import { Textarea } from '@nuclom/ui/textarea';
 import { MessageSquareText, Send, StopCircle } from 'lucide-react';
 import { useCallback, useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Textarea } from '@/components/ui/textarea';
 import { FollowUpChips } from './follow-up-chips';
 import { KnowledgeQAMessage, KnowledgeQAMessageSkeleton } from './knowledge-qa-message';
 

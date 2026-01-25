@@ -1,6 +1,9 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent } from '@nuclom/ui/card';
 import { Link } from '@vercel/microfrontends/next/client';
 import {
   ArrowRight,
@@ -19,9 +22,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { BulkVideoUpload } from '@/components/bulk-video-upload';
 import { GoogleDrivePicker } from '@/components/integrations/google-drive-picker';
 import { RecordingBrowser } from '@/components/integrations/recording-browser';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { UrlVideoUpload } from '@/components/url-video-upload';
 import { useToast } from '@/hooks/use-toast';
 

@@ -8,14 +8,14 @@
  */
 
 import { cn } from '@nuclom/lib/utils';
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Checkbox } from '@nuclom/ui/checkbox';
+import { Input } from '@nuclom/ui/input';
+import { ScrollArea } from '@nuclom/ui/scroll-area';
 import { AlertCircle, Check, GitBranch, Loader2, Lock, RefreshCw, Search, Star } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 // =============================================================================
 // Types

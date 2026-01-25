@@ -1,10 +1,10 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Card, CardContent } from '@nuclom/ui/card';
+import { Progress } from '@nuclom/ui/progress';
+import { Skeleton } from '@nuclom/ui/skeleton';
 import { LayoutGrid } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface TopicCoverageGap {
   topic: {

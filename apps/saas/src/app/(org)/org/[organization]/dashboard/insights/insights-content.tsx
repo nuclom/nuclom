@@ -1,21 +1,16 @@
 'use client';
 
 import { logger } from '@nuclom/lib/client-logger';
+import { Button } from '@nuclom/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@nuclom/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@nuclom/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@nuclom/ui/tabs';
 import { Brain, Download, Loader2, RefreshCw } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
 import useSWR from 'swr';
 import { InsightsOverview } from '@/components/insights/insights-overview';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Dynamic imports for tab content - only loads when tab is active
 const InsightsSummary = dynamic(() => import('@/components/insights/insights-summary').then((m) => m.InsightsSummary), {

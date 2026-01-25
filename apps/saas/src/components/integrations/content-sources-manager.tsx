@@ -7,6 +7,12 @@
  */
 
 import { logger } from '@nuclom/lib/client-logger';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@nuclom/ui/dialog';
+import { Input } from '@nuclom/ui/input';
+import { Label } from '@nuclom/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@nuclom/ui/tabs';
 import { BookOpen, Loader2, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -21,19 +27,6 @@ import {
 import { GitHubRepoSelector } from '@/components/integrations/github-repo-selector';
 import { NotionPageSelector } from '@/components/integrations/notion-page-selector';
 import { UserLinkingPanel } from '@/components/integrations/user-linking-panel';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 
 // =============================================================================

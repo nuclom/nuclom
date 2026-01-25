@@ -1,7 +1,7 @@
 'use client';
 
+import { Card, CardContent, CardHeader, CardTitle } from '@nuclom/ui/card';
 import { BarChart3, Clock, Eye, Users } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface AnalyticsOverviewProps {
   data: {

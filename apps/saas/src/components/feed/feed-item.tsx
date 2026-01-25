@@ -1,6 +1,8 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Badge } from '@nuclom/ui/badge';
+import { Card } from '@nuclom/ui/card';
 import { formatDistanceToNow } from 'date-fns';
 import {
   CheckCircle,
@@ -13,8 +15,6 @@ import {
   Tags,
   Video,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
 
 // =============================================================================
 // Types

@@ -1,7 +1,7 @@
 'use client';
 
+import { Button } from '@nuclom/ui/button';
 import { Keyboard, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { KEYBOARD_SHORTCUTS } from '../types';
 
 interface KeyboardHelpModalProps {

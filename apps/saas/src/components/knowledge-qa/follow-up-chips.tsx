@@ -1,7 +1,7 @@
 'use client';
 
+import { Button } from '@nuclom/ui/button';
 import { ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 interface FollowUpChipsProps {
   questions: string[];

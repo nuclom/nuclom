@@ -1,11 +1,11 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@nuclom/ui/tabs';
 import { Lightbulb, Target, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 import useSWR from 'swr';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InsightCards } from './insight-cards';
 import { RecommendationsPanel } from './recommendations-panel';
 import { TrendsSection } from './trends-section';

@@ -9,14 +9,7 @@ const nextConfig: NextConfig = {
 
   // Optimize barrel file imports for better bundle size and faster builds
   experimental: {
-    optimizePackageImports: [
-      'lucide-react',
-      'date-fns',
-      'recharts',
-      'react-day-picker',
-      'react-hook-form',
-      'posthog-js',
-    ],
+    optimizePackageImports: ['lucide-react', 'date-fns', 'react-day-picker', 'posthog-js'],
   },
 
   // Image optimization configuration

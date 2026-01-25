@@ -1,8 +1,8 @@
 'use client';
 
+import { Badge } from '@nuclom/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
 import { Calendar, CheckCircle, Clock, FileVideo, Lightbulb, Sparkles, TrendingUp, User } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface SummaryStats {
   totalVideos: number;

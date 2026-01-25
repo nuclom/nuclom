@@ -9,10 +9,10 @@
  */
 
 import { cn } from '@nuclom/lib/utils';
+import { Checkbox } from '@nuclom/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@nuclom/ui/collapsible';
 import { ChevronRight, Database, FileText, Loader2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 // =============================================================================
 // Types

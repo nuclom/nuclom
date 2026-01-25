@@ -1,9 +1,9 @@
 'use client';
 
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent } from '@nuclom/ui/card';
 import { Link } from '@vercel/microfrontends/next/client';
 import { CheckCircle2, PartyPopper, Upload, Users } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 
 interface StepCompleteProps {
   organizationSlug: string;

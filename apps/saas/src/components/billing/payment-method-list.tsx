@@ -3,19 +3,14 @@
 import { openBillingPortal } from '@nuclom/auth/client';
 import { logger } from '@nuclom/lib/client-logger';
 import type { PaymentMethod } from '@nuclom/lib/db/schema';
+import { Badge } from '@nuclom/ui/badge';
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@nuclom/ui/dropdown-menu';
 import { CreditCard, MoreVertical, Plus, Star, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 // Credit card brand icons mapping
 const cardBrandIcons: Record<string, string> = {
