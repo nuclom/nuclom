@@ -68,7 +68,7 @@ function useDebouncedCallback<T extends (...args: unknown[]) => void>(callback: 
         callbackRef.current(...args);
       }, delay);
     }) as T,
-    [],
+    [delay],
   );
 }
 
