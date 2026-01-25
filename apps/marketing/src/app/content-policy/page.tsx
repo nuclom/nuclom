@@ -14,7 +14,7 @@ import {
   Shield,
   XCircle,
 } from 'lucide-react';
-import { CopyrightYear } from '@/components/copyright-year';
+import { Copyright } from '@/components/copyright';
 
 export const metadata = {
   title: 'Content Policy',
@@ -353,7 +353,7 @@ export default function ContentPolicyPage() {
             </div>
           </div>
           <div className="mt-6 pt-6 border-t text-center text-sm text-muted-foreground">
-            © <CopyrightYear /> Nuclom. All rights reserved.
+            <Copyright />
           </div>
         </div>
       </footer>
