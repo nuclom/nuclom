@@ -7,11 +7,6 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   cacheComponents: true,
 
-  // Optimize barrel file imports for better bundle size and faster builds
-  experimental: {
-    optimizePackageImports: ['lucide-react', 'date-fns', 'react-day-picker', 'posthog-js'],
-  },
-
   // Image optimization configuration
   images: {
     formats: ['image/avif', 'image/webp'],

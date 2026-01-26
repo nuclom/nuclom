@@ -8,20 +8,6 @@ const nextConfig: NextConfig = {
   // Enable compression for API responses
   compress: true,
 
-  // Optimize barrel file imports for better bundle size and faster builds
-  experimental: {
-    optimizePackageImports: [
-      'lucide-react',
-      '@radix-ui/react-icons',
-      '@radix-ui/react-accordion',
-      '@radix-ui/react-dialog',
-      '@radix-ui/react-dropdown-menu',
-      '@radix-ui/react-tabs',
-      '@radix-ui/react-tooltip',
-      'framer-motion',
-    ],
-  },
-
   // Image optimization configuration
   images: {
     formats: ['image/avif', 'image/webp'],
