@@ -146,17 +146,12 @@ export async function GET() {
     const { db } = yield* Database;
 
     // Get current status for each service in parallel
-    const [dbStatus, storageStatus, aiStatus, overallStatus] = yield* Effect.all(
-      [
-        getLatestStatus(db, 'database'),
-        getLatestStatus(db, 'storage'),
-        getLatestStatus(db, 'ai'),
-        getLatestStatus(db, 'overall'),
-      ],
-      { concurrency: 4 },
+    const [dbStatus, storageStatus, overallStatus] = yield* Effect.all(
+      [getLatestStatus(db, 'database'), getLatestStatus(db, 'storage'), getLatestStatus(db, 'overall')],
+      { concurrency: 3 },
     );
 
-    const services = [dbStatus, storageStatus, aiStatus].filter((s): s is ServiceStatus => s !== null);
+    const services = [dbStatus, storageStatus].filter((s): s is ServiceStatus => s !== null);
 
     // If no health checks have been recorded, return default healthy status
     if (services.length === 0) {
@@ -178,7 +173,6 @@ export async function GET() {
             lastChecked: now,
             uptimePercent: 100,
           },
-          { service: 'ai' as const, status: 'healthy' as const, latencyMs: 0, lastChecked: now, uptimePercent: 100 },
         ],
         lastUpdated: now,
         history: [] as StatusResponse['history'],

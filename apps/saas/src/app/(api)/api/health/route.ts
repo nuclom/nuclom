@@ -11,7 +11,6 @@ export interface HealthStatus {
   checks: {
     database: boolean;
     storage: boolean;
-    ai: boolean;
   };
   timestamp: string;
   version?: string;
@@ -32,7 +31,6 @@ export async function GET() {
     const checks = {
       database: false,
       storage: true, // Assume healthy unless we add a check
-      ai: true, // Assume healthy unless we add a check
     };
 
     // Database check using Effect service
@@ -89,7 +87,7 @@ export async function GET() {
     onFailure: () => {
       const response: HealthStatus = {
         status: 'unhealthy',
-        checks: { database: false, storage: false, ai: false },
+        checks: { database: false, storage: false },
         timestamp: new Date().toISOString(),
         version: env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || 'dev',
       };

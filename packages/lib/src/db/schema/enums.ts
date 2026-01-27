@@ -262,7 +262,7 @@ export const highlightReelStatusEnum = pgEnum('HighlightReelStatus', ['draft', '
 // Health Check Enums
 // =============================================================================
 
-export const healthCheckServiceEnum = pgEnum('HealthCheckService', ['database', 'storage', 'ai', 'overall']);
+export const healthCheckServiceEnum = pgEnum('HealthCheckService', ['database', 'storage', 'overall']);
 export const healthCheckStatusEnum = pgEnum('HealthCheckStatus', [
   'healthy',
   'degraded',

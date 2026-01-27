@@ -4,7 +4,6 @@
  * Performs health checks on all services at regular intervals:
  * 1. Database connectivity
  * 2. R2 storage
- * 3. AI service
  *
  * Benefits:
  * - Durable execution ensures checks continue after restarts
@@ -34,7 +33,7 @@ export interface UptimeMonitorResult {
 }
 
 export interface ServiceCheckResult {
-  service: 'database' | 'storage' | 'ai' | 'overall';
+  service: 'database' | 'storage' | 'overall';
   status: 'healthy' | 'degraded' | 'unhealthy' | 'not_configured';
   latencyMs: number;
   error?: string;
@@ -120,49 +119,6 @@ async function checkStorage(): Promise<ServiceCheckResult> {
       status: 'unhealthy',
       latencyMs: Math.round(performance.now() - startTime),
       error: error instanceof Error ? error.message : String(error),
-    };
-  }
-}
-
-async function checkAI(): Promise<ServiceCheckResult> {
-  'use step';
-
-  const startTime = performance.now();
-
-  try {
-    const { gateway } = await import('@ai-sdk/gateway');
-    const { generateText } = await import('ai');
-
-    const model = gateway('xai/grok-3');
-
-    const result = await generateText({
-      model,
-      prompt: "Reply with 'ok'",
-    });
-
-    if (!result.text) {
-      throw new Error('Empty response from AI service');
-    }
-
-    return {
-      service: 'ai',
-      status: 'healthy',
-      latencyMs: Math.round(performance.now() - startTime),
-      metadata: {
-        model: 'xai/grok-3',
-        provider: 'vercel-ai-gateway',
-      },
-    };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    const isConfigError =
-      errorMessage.includes('API key') || errorMessage.includes('authentication') || errorMessage.includes('401');
-
-    return {
-      service: 'ai',
-      status: isConfigError ? 'not_configured' : 'unhealthy',
-      latencyMs: Math.round(performance.now() - startTime),
-      error: errorMessage,
     };
   }
 }
@@ -261,10 +217,9 @@ async function notifyAdminsOnFailure(failedServices: ServiceCheckResult[]): Prom
  * Each invocation:
  * 1. Checks database connectivity
  * 2. Checks R2 storage
- * 3. Checks AI service
- * 4. Stores results in healthChecks table
- * 5. Sends admin notifications on failures
- * 6. Returns and exits
+ * 3. Stores results in healthChecks table
+ * 4. Sends admin notifications on failures
+ * 5. Returns and exits
  *
  * IMPORTANT: This workflow is designed to run once per cron invocation.
  * Do NOT add infinite loops - the cron schedule handles periodic execution.
@@ -273,10 +228,10 @@ export async function uptimeMonitorWorkflow(_input: UptimeMonitorInput): Promise
   'use workflow';
 
   // Step 1: Check all services in parallel
-  const [dbResult, storageResult, aiResult] = await Promise.all([checkDatabase(), checkStorage(), checkAI()]);
+  const [dbResult, storageResult] = await Promise.all([checkDatabase(), checkStorage()]);
 
   // Step 2: Calculate overall status
-  const results = [dbResult, storageResult, aiResult];
+  const results = [dbResult, storageResult];
   const activeResults = results.filter((r) => r.status !== 'not_configured');
   const allHealthy = activeResults.every((r) => r.status === 'healthy');
   const someHealthy = activeResults.some((r) => r.status === 'healthy');
@@ -293,11 +248,10 @@ export async function uptimeMonitorWorkflow(_input: UptimeMonitorInput): Promise
   const overallResult: ServiceCheckResult = {
     service: 'overall',
     status: overallStatus,
-    latencyMs: Math.max(dbResult.latencyMs, storageResult.latencyMs, aiResult.latencyMs),
+    latencyMs: Math.max(dbResult.latencyMs, storageResult.latencyMs),
     metadata: {
       database: dbResult.status,
       storage: storageResult.status,
-      ai: aiResult.status,
     },
   };
 
@@ -324,9 +278,9 @@ export async function uptimeMonitorWorkflow(_input: UptimeMonitorInput): Promise
 export async function runSingleHealthCheck(): Promise<ServiceCheckResult[]> {
   'use workflow';
 
-  const [dbResult, storageResult, aiResult] = await Promise.all([checkDatabase(), checkStorage(), checkAI()]);
+  const [dbResult, storageResult] = await Promise.all([checkDatabase(), checkStorage()]);
 
-  const results = [dbResult, storageResult, aiResult];
+  const results = [dbResult, storageResult];
   const activeResults = results.filter((r) => r.status !== 'not_configured');
   const allHealthy = activeResults.every((r) => r.status === 'healthy');
   const someHealthy = activeResults.some((r) => r.status === 'healthy');
@@ -343,7 +297,7 @@ export async function runSingleHealthCheck(): Promise<ServiceCheckResult[]> {
   const overallResult: ServiceCheckResult = {
     service: 'overall',
     status: overallStatus,
-    latencyMs: Math.max(dbResult.latencyMs, storageResult.latencyMs, aiResult.latencyMs),
+    latencyMs: Math.max(dbResult.latencyMs, storageResult.latencyMs),
   };
 
   const allResults = [...results, overallResult];
