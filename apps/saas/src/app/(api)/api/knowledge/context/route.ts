@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
   const exit = await runApiEffect(effect);
   return handleEffectExitWithOptions(exit, {
     successHeaders: {
-      'Cache-Control': getCacheControlHeader(CachePresets.shortWithSwr()),
+      'Cache-Control': getCacheControlHeader(CachePresets.shortWithSwr),
     },
   });
 }

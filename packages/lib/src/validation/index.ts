@@ -135,120 +135,11 @@ export function validateFormData<A, I>(
 }
 
 // =============================================================================
-// Type-Safe Query Validators
-// =============================================================================
-
-/**
- * Create a reusable, type-safe query parameter validator.
- * This provides a consistent interface for validating URL query parameters
- * with full TypeScript type inference.
- *
- * @example
- * ```typescript
- * // Define the validator once
- * const getVideosQuery = createQueryValidator(Schema.Struct({
- *   page: Schema.optional(Schema.NumberFromString),
- *   limit: Schema.optional(Schema.NumberFromString),
- *   organizationId: Schema.String,
- * }));
- *
- * // Use in API route
- * export async function GET(request: NextRequest) {
- *   const params = yield* getVideosQuery.validate(request.url);
- *   // params is typed as { page?: number; limit?: number; organizationId: string }
- * }
- *
- * // Or use safeParse for form handling
- * const result = getVideosQuery.safeParse(url);
- * if (result.success) {
- *   // result.data is typed
- * }
- * ```
- */
-export function createQueryValidator<A, I>(schema: Schema.Schema<A, I>) {
-  return {
-    /** Validate query parameters, returning an Effect that fails with ValidationError */
-    validate: (url: string | URL): Effect.Effect<A, ValidationError> => validateQueryParams(schema, url),
-
-    /** Validate query parameters with a safeParse-style result object */
-    safeParse: (url: string | URL): SafeParseResult<A> => safeParse(schema, parseQueryParams(url)),
-
-    /** Get the underlying schema for composition */
-    schema,
-  };
-}
-
-/**
- * Create a reusable, type-safe request body validator.
- * This provides a consistent interface for validating JSON request bodies
- * with full TypeScript type inference.
- *
- * @example
- * ```typescript
- * // Define the validator once
- * const createVideoBody = createBodyValidator(Schema.Struct({
- *   title: Schema.String,
- *   description: Schema.optional(Schema.String),
- *   organizationId: Schema.String,
- * }));
- *
- * // Use in API route
- * export async function POST(request: NextRequest) {
- *   const body = yield* createVideoBody.validate(request);
- *   // body is typed as { title: string; description?: string; organizationId: string }
- * }
- * ```
- */
-export function createBodyValidator<A, I>(schema: Schema.Schema<A, I>) {
-  return {
-    /** Validate request body, returning an Effect that fails with ValidationError */
-    validate: (request: Request): Effect.Effect<A, ValidationError> => validateRequestBody(schema, request),
-
-    /** Validate raw data with a safeParse-style result object */
-    safeParse: (data: unknown): SafeParseResult<A> => safeParse(schema, data),
-
-    /** Get the underlying schema for composition */
-    schema,
-  };
-}
-
-/**
- * Combine multiple validators into a single validator that validates all schemas.
- * Useful when you need to validate both query params and body together.
- *
- * @example
- * ```typescript
- * const updateVideoParams = createQueryValidator(Schema.Struct({ id: Schema.String }));
- * const updateVideoBody = createBodyValidator(Schema.Struct({ title: Schema.String }));
- *
- * // In route handler:
- * const params = yield* updateVideoParams.validate(request.url);
- * const body = yield* updateVideoBody.validate(request);
- * // Both are fully typed
- * ```
- */
-export function combineValidators<A, B, I1, I2>(
-  queryValidator: ReturnType<typeof createQueryValidator<A, I1>>,
-  bodyValidator: ReturnType<typeof createBodyValidator<B, I2>>,
-) {
-  return {
-    /** Validate both query params and body */
-    validate: (request: Request): Effect.Effect<{ query: A; body: B }, ValidationError> =>
-      Effect.gen(function* () {
-        const query = yield* queryValidator.validate(request.url);
-        const body = yield* bodyValidator.validate(request);
-        return { query, body };
-      }),
-  };
-}
-
-// =============================================================================
 // Common Query Parameter Schemas
 // =============================================================================
 
 /**
- * Common pagination query parameters.
- * Use these in your query validators for consistency.
+ * Common pagination query parameters schema.
  */
 export const PaginationParams = Schema.Struct({
   page: Schema.optional(
@@ -275,24 +166,3 @@ export const PaginationParams = Schema.Struct({
  * Type for pagination query parameters.
  */
 export type PaginationParams = Schema.Schema.Type<typeof PaginationParams>;
-
-/**
- * Common ID parameter.
- */
-export const IdParam = Schema.Struct({
-  id: Schema.String,
-});
-
-/**
- * Organization ID parameter (commonly used in multi-tenant APIs).
- */
-export const OrganizationIdParam = Schema.Struct({
-  organizationId: Schema.String,
-});
-
-// Note: For file validation, sanitization, and schemas, import directly:
-// import { ... } from "@nuclom/lib/validation/file-validation";
-// import { ... } from "@nuclom/lib/validation/sanitize";
-// import { ... } from "@nuclom/lib/validation/schemas";
-// Form utilities (useValidatedForm, etc.) are in ./form.ts:
-// import { useValidatedForm } from "@nuclom/lib/validation/form";

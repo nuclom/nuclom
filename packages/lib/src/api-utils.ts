@@ -57,56 +57,29 @@ export function getCacheControlHeader(options: CacheOptions = {}): string {
 }
 
 /**
- * Pre-configured cache presets
+ * Pre-configured cache presets (as constants for better performance)
  */
 export const CachePresets = {
   /** No caching - for real-time data */
-  noCache: (): CacheOptions => ({
-    maxAge: 0,
-    isPrivate: true,
-  }),
+  noCache: { maxAge: 0, isPrivate: true } as CacheOptions,
 
   /** Short cache with SWR - for frequently changing data (e.g., video lists) */
-  shortWithSwr: (): CacheOptions => ({
-    maxAge: 60, // 1 minute fresh
-    staleWhileRevalidate: 300, // 5 minutes stale-while-revalidate
-    isPrivate: true,
-  }),
+  shortWithSwr: { maxAge: 60, staleWhileRevalidate: 300, isPrivate: true } as CacheOptions,
 
   /** Medium cache with SWR - for moderately changing data (e.g., organization data) */
-  mediumWithSwr: (): CacheOptions => ({
-    maxAge: 300, // 5 minutes fresh
-    staleWhileRevalidate: 3600, // 1 hour stale-while-revalidate
-    isPrivate: true,
-  }),
+  mediumWithSwr: { maxAge: 300, staleWhileRevalidate: 3600, isPrivate: true } as CacheOptions,
 
   /** Long cache with SWR - for rarely changing data (e.g., AI analysis results) */
-  longWithSwr: (): CacheOptions => ({
-    maxAge: 3600, // 1 hour fresh
-    staleWhileRevalidate: 86400, // 24 hours stale-while-revalidate
-    isPrivate: true,
-  }),
+  longWithSwr: { maxAge: 3600, staleWhileRevalidate: 86400, isPrivate: true } as CacheOptions,
 
   /** Static content - for immutable data */
-  immutable: (): CacheOptions => ({
-    maxAge: 31536000, // 1 year
-    isPrivate: false,
-    additionalDirectives: ['immutable'],
-  }),
+  immutable: { maxAge: 31536000, isPrivate: false, additionalDirectives: ['immutable'] } as CacheOptions,
 
   /** User progress data - very short cache */
-  progress: (): CacheOptions => ({
-    maxAge: 10, // 10 seconds fresh
-    staleWhileRevalidate: 30, // 30 seconds stale-while-revalidate
-    isPrivate: true,
-  }),
+  progress: { maxAge: 10, staleWhileRevalidate: 30, isPrivate: true } as CacheOptions,
 
   /** AI analysis results - long cache since they don't change */
-  aiAnalysis: (): CacheOptions => ({
-    maxAge: 86400, // 24 hours fresh
-    staleWhileRevalidate: 604800, // 7 days stale-while-revalidate
-    isPrivate: true,
-  }),
+  aiAnalysis: { maxAge: 86400, staleWhileRevalidate: 604800, isPrivate: true } as CacheOptions,
 } as const;
 
 // =============================================================================
@@ -207,7 +180,7 @@ export function jsonResponse<T>(
  * Create a success response with proper caching
  */
 export function successResponse<T>(data: T, cachePreset?: keyof typeof CachePresets): NextResponse {
-  const cache = cachePreset ? CachePresets[cachePreset]() : undefined;
+  const cache = cachePreset ? CachePresets[cachePreset] : undefined;
   return jsonResponse(data, { cache });
 }
 
@@ -216,7 +189,7 @@ export function successResponse<T>(data: T, cachePreset?: keyof typeof CachePres
  */
 export function errorResponse(error: string | { message: string }, status = 500): NextResponse {
   const message = typeof error === 'string' ? error : error.message;
-  return jsonResponse({ error: message }, { status, cache: CachePresets.noCache() });
+  return jsonResponse({ error: message }, { status, cache: CachePresets.noCache });
 }
 
 // =============================================================================

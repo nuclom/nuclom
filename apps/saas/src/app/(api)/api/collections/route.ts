@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
   const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
   return handleEffectExitWithOptions(exit, {
-    successHeaders: { 'Cache-Control': getCacheControlHeader(CachePresets.shortWithSwr()) },
+    successHeaders: { 'Cache-Control': getCacheControlHeader(CachePresets.shortWithSwr) },
   });
 }
 

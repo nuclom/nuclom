@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     // AI analysis results don't change - use long cache with stale-while-revalidate
     return NextResponse.json(response, {
       headers: {
-        'Cache-Control': getCacheControlHeader(CachePresets.aiAnalysis()),
+        'Cache-Control': getCacheControlHeader(CachePresets.aiAnalysis),
       },
     });
   } catch (error) {

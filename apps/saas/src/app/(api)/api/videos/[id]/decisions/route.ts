@@ -40,7 +40,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const exit = await runApiEffect(effect);
   return handleEffectExitWithOptions(exit, {
     successHeaders: {
-      'Cache-Control': getCacheControlHeader(CachePresets.shortWithSwr()),
+      'Cache-Control': getCacheControlHeader(CachePresets.shortWithSwr),
     },
   });
 }
