@@ -5,7 +5,6 @@
  * - Consistent error response formatting
  * - Authentication layer setup
  * - Effect-TS integration
- * - Reduced boilerplate in route handlers
  */
 
 import { Cause, type Context, Effect, Exit, Layer } from 'effect';
@@ -15,18 +14,6 @@ import { auth } from './auth';
 import { AppLive } from './effect/runtime';
 import { Auth, makeAuthLayer } from './effect/services/auth';
 import { Storage } from './effect/services/storage';
-
-// =============================================================================
-// Types
-// =============================================================================
-
-export interface ApiHandlerOptions {
-  /** Enable caching headers */
-  cache?: {
-    maxAge?: number;
-    staleWhileRevalidate?: number;
-  };
-}
 
 // =============================================================================
 // Layer Creation Helpers
