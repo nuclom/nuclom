@@ -67,41 +67,38 @@ export interface OptimizedImageProps {
 }
 
 /**
- * Default props for video thumbnails
+ * Get optimized image props for thumbnails.
+ *
+ * @param src - Image source URL
+ * @param alt - Alt text for accessibility
+ * @param options - Optional configuration
  */
-export const getVideoThumbnailProps = (
+export function getThumbnailProps(
   src: string | null | undefined,
   alt: string,
   options?: {
     priority?: boolean;
     sizes?: string;
   },
-): OptimizedImageProps => ({
-  src: src || '/placeholder.svg',
-  alt,
-  fill: true,
-  sizes: options?.sizes || IMAGE_SIZES.videoCard,
-  priority: options?.priority || false,
-  placeholder: 'blur' as const,
-  blurDataURL: VIDEO_THUMBNAIL_BLUR_DATA_URL,
-});
+): OptimizedImageProps {
+  return {
+    src: src || '/placeholder.svg',
+    alt,
+    fill: true,
+    sizes: options?.sizes || IMAGE_SIZES.videoCard,
+    priority: options?.priority || false,
+    placeholder: 'blur' as const,
+    blurDataURL: VIDEO_THUMBNAIL_BLUR_DATA_URL,
+  };
+}
 
-/**
- * Default props for collection thumbnails
- */
+/** @deprecated Use getThumbnailProps instead */
+export const getVideoThumbnailProps = getThumbnailProps;
+
+/** @deprecated Use getThumbnailProps with sizes: IMAGE_SIZES.collectionCard */
 export const getCollectionThumbnailProps = (
   src: string | null | undefined,
   alt: string,
-  options?: {
-    priority?: boolean;
-    sizes?: string;
-  },
-): OptimizedImageProps => ({
-  src: src || '/placeholder.svg',
-  alt,
-  fill: true,
-  sizes: options?.sizes || IMAGE_SIZES.collectionCard,
-  priority: options?.priority || false,
-  placeholder: 'blur' as const,
-  blurDataURL: VIDEO_THUMBNAIL_BLUR_DATA_URL,
-});
+  options?: { priority?: boolean; sizes?: string },
+): OptimizedImageProps =>
+  getThumbnailProps(src, alt, { ...options, sizes: options?.sizes || IMAGE_SIZES.collectionCard });

@@ -36,7 +36,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   return handleEffectExitWithOptions(exit, {
     successHeaders: {
       // Progress changes frequently, use very short cache
-      'Cache-Control': getCacheControlHeader(CachePresets.progress()),
+      'Cache-Control': getCacheControlHeader(CachePresets.progress),
     },
   });
 }

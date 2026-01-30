@@ -798,9 +798,6 @@ importers:
       resend:
         specifier: 'catalog:'
         version: 6.8.0
-      sonner:
-        specifier: 'catalog:'
-        version: 2.0.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       stripe:
         specifier: 'catalog:'
         version: 20.2.0(@types/node@25.0.10)

@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
   const exit = await runApiEffect(effect);
   return handleEffectExit(exit, {
-    cache: { maxAge: 60, staleWhileRevalidate: 120 },
+    headers: { 'Cache-Control': 'max-age=60, stale-while-revalidate=120' },
   });
 }
 

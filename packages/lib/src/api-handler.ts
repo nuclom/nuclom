@@ -5,7 +5,6 @@
  * - Consistent error response formatting
  * - Authentication layer setup
  * - Effect-TS integration
- * - Reduced boilerplate in route handlers
  */
 
 import { Cause, type Context, Effect, Exit, Layer } from 'effect';
@@ -15,18 +14,6 @@ import { auth } from './auth';
 import { AppLive } from './effect/runtime';
 import { Auth, makeAuthLayer } from './effect/services/auth';
 import { Storage } from './effect/services/storage';
-
-// =============================================================================
-// Types
-// =============================================================================
-
-export interface ApiHandlerOptions {
-  /** Enable caching headers */
-  cache?: {
-    maxAge?: number;
-    staleWhileRevalidate?: number;
-  };
-}
 
 // =============================================================================
 // Layer Creation Helpers
@@ -98,83 +85,30 @@ export async function runPublicApiEffect<T, E>(effect: Effect.Effect<T, E, unkno
 // Effect Exit Handler
 // =============================================================================
 
+export interface EffectExitOptions {
+  /** HTTP status code for success (default: 200) */
+  status?: number;
+  /** Headers to add on success */
+  headers?: Record<string, string>;
+  /** Headers to add on error */
+  errorHeaders?: Record<string, string>;
+}
+
 /**
- * Handle Effect exit consistently across all API routes
+ * Handle Effect exit consistently across all API routes.
  *
  * @example
- * const exit = await Effect.runPromiseExit(runnable);
+ * // Basic usage
  * return handleEffectExit(exit);
- */
-export function handleEffectExit<T>(exit: Exit.Exit<T, unknown>, options?: ApiHandlerOptions): NextResponse {
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => {
-      const headers: Record<string, string> = {};
-
-      if (options?.cache) {
-        const parts: string[] = [];
-        if (options.cache.maxAge !== undefined) {
-          parts.push(`max-age=${options.cache.maxAge}`);
-        }
-        if (options.cache.staleWhileRevalidate !== undefined) {
-          parts.push(`stale-while-revalidate=${options.cache.staleWhileRevalidate}`);
-        }
-        if (parts.length > 0) {
-          headers['Cache-Control'] = parts.join(', ');
-        }
-      }
-
-      return NextResponse.json(data, {
-        headers: Object.keys(headers).length > 0 ? headers : undefined,
-      });
-    },
-  });
-}
-
-/**
- * Handle Effect exit with custom status code for success (e.g., 201 for POST)
- */
-export function handleEffectExitWithStatus<T>(exit: Exit.Exit<T, unknown>, successStatus: number): NextResponse {
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => NextResponse.json(data, { status: successStatus }),
-  });
-}
-
-/**
- * Handle Effect exit with full custom response options
  *
- * Use this when you need custom headers, status codes, or other response options.
+ * // With custom status (e.g., 201 for POST)
+ * return handleEffectExit(exit, { status: 201 });
  *
- * @example
- * return handleEffectExitWithOptions(exit, {
- *   successStatus: 200,
- *   successHeaders: { "Cache-Control": "public, max-age=60" },
- *   errorHeaders: { "Cache-Control": "no-store" },
- * });
+ * // With cache headers
+ * return handleEffectExit(exit, { headers: { "Cache-Control": "max-age=60" } });
  */
-export function handleEffectExitWithOptions<T>(
-  exit: Exit.Exit<T, unknown>,
-  options: {
-    successStatus?: number;
-    successHeaders?: Record<string, string>;
-    errorStatus?: number;
-    errorHeaders?: Record<string, string>;
-  } = {},
-): NextResponse {
-  const { successStatus = 200, successHeaders, errorHeaders } = options;
+export function handleEffectExit<T>(exit: Exit.Exit<T, unknown>, options: EffectExitOptions = {}): NextResponse {
+  const { status = 200, headers, errorHeaders } = options;
 
   return Exit.match(exit, {
     onFailure: (cause) => {
@@ -184,7 +118,6 @@ export function handleEffectExitWithOptions<T>(
           ? mapErrorToApiResponse(error.value)
           : mapErrorToApiResponse(new Error('Internal server error'));
 
-      // Add custom error headers if provided
       if (errorHeaders) {
         for (const [key, value] of Object.entries(errorHeaders)) {
           response.headers.set(key, value);
@@ -192,11 +125,29 @@ export function handleEffectExitWithOptions<T>(
       }
       return response;
     },
-    onSuccess: (data) =>
-      NextResponse.json(data, {
-        status: successStatus,
-        headers: successHeaders,
-      }),
+    onSuccess: (data) => NextResponse.json(data, { status, headers }),
+  });
+}
+
+/** @deprecated Use handleEffectExit with options instead */
+export function handleEffectExitWithStatus<T>(exit: Exit.Exit<T, unknown>, successStatus: number): NextResponse {
+  return handleEffectExit(exit, { status: successStatus });
+}
+
+/** @deprecated Use handleEffectExit with options instead */
+export function handleEffectExitWithOptions<T>(
+  exit: Exit.Exit<T, unknown>,
+  options: {
+    successStatus?: number;
+    successHeaders?: Record<string, string>;
+    errorStatus?: number;
+    errorHeaders?: Record<string, string>;
+  } = {},
+): NextResponse {
+  return handleEffectExit(exit, {
+    status: options.successStatus,
+    headers: options.successHeaders,
+    errorHeaders: options.errorHeaders,
   });
 }
 
@@ -205,50 +156,31 @@ export function handleEffectExitWithOptions<T>(
 // =============================================================================
 
 /**
- * Generate presigned thumbnail URL from stored key.
- *
- * This helper converts stored R2 keys to presigned download URLs.
+ * Generate presigned URL from a stored R2 key.
  *
  * @param storage - The storage service instance
- * @param thumbnailKey - The stored thumbnail key
+ * @param key - The stored key (thumbnail, video, etc.)
  * @param expiresIn - Optional expiration time in seconds (default: 3600 = 1 hour)
  * @returns Effect that resolves to presigned URL or null if key is missing
  *
  * @example
  * const storage = yield* Storage;
- * const presignedUrl = yield* generatePresignedThumbnailUrl(storage, video.thumbnailUrl);
+ * const presignedUrl = yield* generatePresignedUrl(storage, video.thumbnailUrl);
  */
-export function generatePresignedThumbnailUrl(
+export function generatePresignedUrl(
   storage: Context.Tag.Service<typeof Storage>,
-  thumbnailKey: string | null,
+  key: string | null,
   expiresIn = 3600,
 ): Effect.Effect<string | null, never, never> {
-  if (!thumbnailKey) return Effect.succeed(null);
-
-  return storage
-    .generatePresignedDownloadUrl(thumbnailKey, expiresIn)
-    .pipe(Effect.catchAll(() => Effect.succeed(null)));
+  if (!key) return Effect.succeed(null);
+  return storage.generatePresignedDownloadUrl(key, expiresIn).pipe(Effect.catchAll(() => Effect.succeed(null)));
 }
 
-/**
- * Generate presigned video URL from stored key.
- *
- * This helper converts stored R2 keys to presigned download URLs.
- *
- * @param storage - The storage service instance
- * @param videoKey - The stored video key
- * @param expiresIn - Optional expiration time in seconds (default: 3600 = 1 hour)
- * @returns Effect that resolves to presigned URL or null if key is missing
- */
-export function generatePresignedVideoUrl(
-  storage: Context.Tag.Service<typeof Storage>,
-  videoKey: string | null,
-  expiresIn = 3600,
-): Effect.Effect<string | null, never, never> {
-  if (!videoKey) return Effect.succeed(null);
+/** @deprecated Use generatePresignedUrl instead */
+export const generatePresignedThumbnailUrl = generatePresignedUrl;
 
-  return storage.generatePresignedDownloadUrl(videoKey, expiresIn).pipe(Effect.catchAll(() => Effect.succeed(null)));
-}
+/** @deprecated Use generatePresignedUrl instead */
+export const generatePresignedVideoUrl = generatePresignedUrl;
 
 // =============================================================================
 // Re-export commonly used utilities
